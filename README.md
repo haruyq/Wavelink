@@ -39,45 +39,12 @@ Wavelink features a fully asynchronous API that's intuitive and easy to use.
 
 ## Getting Started
 
-**See Examples:** [Examples](https://github.com/PythonistaGuild/Wavelink/tree/main/examples)
-
 **Lavalink:** [GitHub](https://github.com/lavalink-devs/Lavalink/releases), [Webpage](https://lavalink.dev)
 
 
 ## Documentation
 
 [Official Documentation](https://wavelink.dev/en/latest)
-
-## Support
-
-For support using WaveLink, please join the official [Support Server](https://discord.gg/RAKc3HF) on
-[Discord](https://discordapp.com)
-
-[![Discord Banner](https://discordapp.com/api/guilds/490948346773635102/widget.png?style=banner2)](https://discord.gg/RAKc3HF)
-
-
-## Installation
-
-**WaveLink 3 requires Python 3.10+**
-
-**Windows**
-
-
-```sh
-py -3.10 -m pip install -U wavelink
-```
-
-**Linux**
-
-```sh
-python3.10 -m pip install -U wavelink
-```
-
-**Virtual Environments**
-
-```sh
-pip install -U wavelink
-```
 
 
 ## Lavalink
