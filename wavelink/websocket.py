@@ -66,8 +66,6 @@ class Websocket:
 
     async def connect(self) -> None:
         if self.node._status is NodeStatus.CONNECTED:
-            # Node was previously connected...
-            # We can dispatch an event to say the node was disconnected...
             payload: NodeDisconnectedEventPayload = NodeDisconnectedEventPayload(node=self.node)
             self.dispatch("node_disconnected", payload)
 
@@ -90,7 +88,7 @@ class Websocket:
 
         while True:
             try:
-                self.socket = await session.ws_connect(url=uri, heartbeat=heartbeat, headers=self.headers)  # type: ignore
+                self.socket = await session.ws_connect(url=uri, heartbeat=heartbeat, headers=self.headers)
             except Exception as e:
                 if isinstance(e, aiohttp.WSServerHandshakeError) and e.status == 401:
                     await self.cleanup()
@@ -107,8 +105,34 @@ class Websocket:
                     )
 
             if self.is_connected():
-                self.keep_alive_task = asyncio.create_task(self.keep_alive())
-                break
+                try:
+                    message: aiohttp.WSMessage = await self.socket.receive()
+                except Exception as e:
+                    logger.warning(f"Failed to receive message from websocket after connection: {e}")
+                    await self.cleanup()
+                    continue
+
+                if message.type == aiohttp.WSMsgType.TEXT:
+                    data: WebsocketOP = message.json()
+                    if data["op"] == "ready":
+                        self.node._session_id = data["sessionId"]
+                        self.node._status = NodeStatus.CONNECTED
+                        self.backoff.reset()
+
+                        await self._update_node()
+
+                        ready_payload: NodeReadyEventPayload = NodeReadyEventPayload(
+                            node=self.node, resumed=data["resumed"], session_id=self.node._session_id
+                        )
+                        self.dispatch("node_ready", ready_payload)
+
+                        self.keep_alive_task = asyncio.create_task(self.keep_alive())
+                        break
+                else:
+                    logger.warning(f"Received unexpected message type {message.type} after connection.")
+                    await self.cleanup()
+                    continue
+
 
             if retries == 0:
                 logger.warning(
@@ -134,34 +158,20 @@ class Websocket:
         while True:
             message: aiohttp.WSMessage = await self.socket.receive()
 
-            if message.type in (  # pyright: ignore[reportUnknownMemberType]
+            if message.type in (
                 aiohttp.WSMsgType.CLOSED,
                 aiohttp.WSMsgType.CLOSING,
             ):
                 asyncio.create_task(self.connect())
                 break
 
-            if message.data is None:  # pyright: ignore[reportUnknownMemberType]
+            if message.data is None:
                 logger.debug("Received an empty message from Lavalink websocket. Disregarding.")
                 continue
 
             data: WebsocketOP = message.json()
 
-            if data["op"] == "ready":
-                resumed: bool = data["resumed"]
-                session_id: str = data["sessionId"]
-
-                self.node._status = NodeStatus.CONNECTED
-                self.node._session_id = session_id
-
-                await self._update_node()
-
-                ready_payload: NodeReadyEventPayload = NodeReadyEventPayload(
-                    node=self.node, resumed=resumed, session_id=session_id
-                )
-                self.dispatch("node_ready", ready_payload)
-
-            elif data["op"] == "playerUpdate":
+            if data["op"] == "playerUpdate":
                 playerup: Player | None = self.get_player(data["guildId"])
                 state: PlayerState = data["state"]
 

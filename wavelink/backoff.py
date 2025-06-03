@@ -55,3 +55,7 @@ class Backoff:
         self._retries += 1
 
         return wait
+    
+    def reset(self) -> None:
+        self._retries = 1
+        self._last_wait = 0
