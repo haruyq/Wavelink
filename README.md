@@ -2,6 +2,9 @@
 > このForkは、現在メンテナンスされていない[Wavelink](https://github.com/PythonistaGuild/Wavelink)を私なりに修正、機能の追加を行うためのものです。  
 > 以下のReadmeの翻訳はAIが行っています。Pull requestやIssuesはお気軽にどうぞ。
 
+> [!WARNING]
+> 継続的なアップデートを保証するものではありませんので、その点はご注意ください。  
+
 <div align="center">
 
 
