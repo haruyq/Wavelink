@@ -15,22 +15,17 @@ class Namespace(SimpleNamespace):
 
 
 class ExtrasNamespace(Namespace):
-    """A subclass of :class:`types.SimpleNameSpace`.
+    """:class:`types.SimpleNameSpace` のサブクラス
 
-    You can construct this namespace with a :class:`dict` of `str` keys and `Any` value, or with keyword pairs or
-    with a mix of both.
+    この名前空間は `str` キーと `Any` 値の :class:`dict`、キーワード引数、またはその両方で構築可能
 
-    You can access a dict version of this namespace by calling `dict()` on an instance.
-
+    インスタンスに対して `dict()` を呼び出すことで辞書形式でアクセスできる
 
     Examples
     --------
-
         .. code:: python
-
             ns: ExtrasNamespace = ExtrasNamespace({"hello": "world!"}, stuff=1)
 
-            # Later...
             print(ns.hello)
             print(ns.stuff)
             print(dict(ns))

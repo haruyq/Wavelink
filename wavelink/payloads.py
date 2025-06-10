@@ -46,16 +46,16 @@ __all__ = (
 
 
 class NodeReadyEventPayload:
-    """Payload received in the :func:`on_wavelink_node_ready` event.
+    """:func:`on_wavelink_node_ready` イベントで受け取るペイロード
 
     Attributes
     ----------
     node: :class:`~wavelink.Node`
-        The node that has connected or reconnected.
+        接続または再接続したノード
     resumed: bool
-        Whether this node was successfully resumed.
+        このノードが正常にレジューム（再開）できたかどうか
     session_id: str
-        The session ID associated with this node.
+        このノードに紐づくセッションID
     """
 
     def __init__(self, node: Node, resumed: bool, session_id: str) -> None:
@@ -65,12 +65,12 @@ class NodeReadyEventPayload:
 
 
 class NodeDisconnectedEventPayload:
-    """Payload received in the :func:`on_wavelink_node_disconnected` event.
+    """:func:`on_wavelink_node_disconnected` イベントで受け取るペイロード
 
     Attributes
     ----------
     node: :class:`~wavelink.Node`
-        The node that has disconnected.
+        切断されたノード
     """
 
     def __init__(self, node: Node) -> None:
@@ -78,17 +78,16 @@ class NodeDisconnectedEventPayload:
 
 
 class TrackStartEventPayload:
-    """Payload received in the :func:`on_wavelink_track_start` event.
+    """:func:`on_wavelink_track_start` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     track: :class:`~wavelink.Playable`
-        The track received from Lavalink regarding this event.
+        このイベントでLavalinkから受け取ったトラック
     original: :class:`~wavelink.Playable` | None
-        The original track associated this event. E.g. the track that was passed to :meth:`~wavelink.Player.play` or
-        inserted into the queue, with all your additional attributes assigned. Could be ``None``.
+        このイベントに紐づく元のトラック。:meth:`~wavelink.Player.play` で渡したり、キューに追加したトラックなど。Noneの場合もある
     """
 
     def __init__(self, player: Player | None, track: Playable) -> None:
@@ -101,19 +100,18 @@ class TrackStartEventPayload:
 
 
 class TrackEndEventPayload:
-    """Payload received in the :func:`on_wavelink_track_end` event.
+    """:func:`on_wavelink_track_end` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     track: :class:`~wavelink.Playable`
-        The track received from Lavalink regarding this event.
+        このイベントでLavalinkから受け取ったトラック
     reason: str
-        The reason Lavalink ended this track.
+        このトラックが終了した理由
     original: :class:`~wavelink.Playable` | None
-        The original track associated this event. E.g. the track that was passed to :meth:`~wavelink.Player.play` or
-        inserted into the queue, with all your additional attributes assigned. Could be ``None``.
+        このイベントに紐づく元のトラック。:meth:`~wavelink.Player.play` で渡したり、キューに追加したトラックなど。Noneの場合もある
     """
 
     def __init__(self, player: Player | None, track: Playable, reason: str) -> None:
@@ -127,16 +125,16 @@ class TrackEndEventPayload:
 
 
 class TrackExceptionEventPayload:
-    """Payload received in the :func:`on_wavelink_track_exception` event.
+    """:func:`on_wavelink_track_exception` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     track: :class:`~wavelink.Playable`
-        The track received from Lavalink regarding this event.
+        このイベントでLavalinkから受け取ったトラック
     exception: TrackExceptionPayload
-        The exception data received via Lavalink.
+        Lavalinkから受け取った例外データ
     """
 
     def __init__(self, player: Player | None, track: Playable, exception: TrackExceptionPayload) -> None:
@@ -146,16 +144,16 @@ class TrackExceptionEventPayload:
 
 
 class TrackStuckEventPayload:
-    """Payload received in the :func:`on_wavelink_track_stuck` event.
+    """:func:`on_wavelink_track_stuck` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     track: :class:`~wavelink.Playable`
-        The track received from Lavalink regarding this event.
+        このイベントでLavalinkから受け取ったトラック
     threshold: int
-        The Lavalink threshold associated with this event.
+        このイベントに紐づくLavalinkのしきい値
     """
 
     def __init__(self, player: Player | None, track: Playable, threshold: int) -> None:
@@ -165,18 +163,18 @@ class TrackStuckEventPayload:
 
 
 class WebsocketClosedEventPayload:
-    """Payload received in the :func:`on_wavelink_websocket_closed` event.
+    """:func:`on_wavelink_websocket_closed` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     code: :class:`wavelink.DiscordVoiceCloseType`
-        The close code enum value.
+        WebSocketのクローズコード(enum)
     reason: str
-        The reason the websocket was closed.
+        WebSocketが閉じられた理由
     by_remote: bool
-        ``True`` if discord closed the websocket. ``False`` otherwise.
+        Discord側でWebSocketが閉じられた場合はTrue、それ以外はFalse
     """
 
     def __init__(self, player: Player | None, code: int, reason: str, by_remote: bool) -> None:
@@ -187,20 +185,20 @@ class WebsocketClosedEventPayload:
 
 
 class PlayerUpdateEventPayload:
-    """Payload received in the :func:`on_wavelink_player_update` event.
+    """:func:`on_wavelink_player_update` イベントで受け取るペイロード
 
     Attributes
     ----------
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに紐づくプレイヤー。Noneの場合もある
     time: int
-        Unix timestamp in milliseconds, when this event fired.
+        このイベントが発火した時刻（UNIXミリ秒）
     position: int
-        The position of the currently playing track in milliseconds.
+        現在再生中のトラックの位置（ミリ秒）
     connected: bool
-        Whether Lavalink is connected to the voice gateway.
+        Lavalinkがボイスゲートウェイに接続しているかどうか
     ping: int
-        The ping of the node to the Discord voice server in milliseconds (-1 if not connected).
+        ノードからDiscordボイスサーバーへのping（ミリ秒、未接続時は-1）
     """
 
     def __init__(self, player: Player | None, state: PlayerState) -> None:
@@ -212,18 +210,18 @@ class PlayerUpdateEventPayload:
 
 
 class StatsEventMemory:
-    """Represents Memory Stats.
+    """メモリ統計情報を表現するクラス
 
     Attributes
     ----------
     free: int
-        The amount of free memory in bytes.
+        空きメモリ量（バイト単位）
     used: int
-        The amount of used memory in bytes.
+        使用中メモリ量（バイト単位）
     allocated: int
-        The amount of allocated memory in bytes.
+        割り当て済みメモリ量（バイト単位）
     reservable: int
-        The amount of reservable memory in bytes.
+        予約可能なメモリ量（バイト単位）
     """
 
     def __init__(self, data: MemoryStats) -> None:
@@ -234,16 +232,16 @@ class StatsEventMemory:
 
 
 class StatsEventCPU:
-    """Represents CPU Stats.
+    """CPU統計情報を表現するクラス
 
     Attributes
     ----------
     cores: int
-        The number of CPU cores available on the node.
+        このノードで利用可能なCPUコア数
     system_load: float
-        The system load of the node.
+        ノード全体のシステム負荷
     lavalink_load: float
-        The load of Lavalink on the node.
+        ノード上のLavalinkの負荷
     """
 
     def __init__(self, data: CPUStats) -> None:
@@ -253,16 +251,16 @@ class StatsEventCPU:
 
 
 class StatsEventFrames:
-    """Represents Frame Stats.
+    """フレーム統計情報を表現するクラス
 
     Attributes
     ----------
     sent: int
-        The amount of frames sent to Discord.
+        Discordへ送信されたフレーム数
     nulled: int
-        The amount of frames that were nulled.
+        無効化されたフレーム数
     deficit: int
-        The difference between sent frames and the expected amount of frames.
+        送信フレーム数と期待されるフレーム数との差分
     """
 
     def __init__(self, data: FrameStats) -> None:
@@ -272,22 +270,22 @@ class StatsEventFrames:
 
 
 class StatsEventPayload:
-    """Payload received in the :func:`on_wavelink_stats_update` event.
+    """:func:`on_wavelink_stats_update` イベントで受け取るペイロード
 
     Attributes
     ----------
     players: int
-        The amount of players connected to the node (Lavalink).
+        このノード（Lavalink）に接続されているプレイヤー数
     playing: int
-        The amount of players playing a track.
+        トラックを再生中のプレイヤー数
     uptime: int
-        The uptime of the node in milliseconds.
+        ノードの稼働時間（ミリ秒）
     memory: :class:`wavelink.StatsEventMemory`
-        See Also: :class:`wavelink.StatsEventMemory`
+        詳細は :class:`wavelink.StatsEventMemory` を参照
     cpu: :class:`wavelink.StatsEventCPU`
-        See Also: :class:`wavelink.StatsEventCPU`
+        詳細は :class:`wavelink.StatsEventCPU` を参照
     frames: :class:`wavelink.StatsEventFrames` | None
-        See Also: :class:`wavelink.StatsEventFrames`. This could be ``None``.
+        詳細は :class:`wavelink.StatsEventFrames` を参照。Noneの場合もある
     """
 
     def __init__(self, data: StatsOP) -> None:
@@ -304,22 +302,22 @@ class StatsEventPayload:
 
 
 class StatsResponsePayload:
-    """Payload received when using :meth:`~wavelink.Node.fetch_stats`
+    """:meth:`~wavelink.Node.fetch_stats` で受け取るペイロード
 
     Attributes
     ----------
     players: int
-        The amount of players connected to the node (Lavalink).
+        このノード（Lavalink）に接続されているプレイヤー数
     playing: int
-        The amount of players playing a track.
+        トラックを再生中のプレイヤー数
     uptime: int
-        The uptime of the node in milliseconds.
+        ノードの稼働時間（ミリ秒）
     memory: :class:`wavelink.StatsEventMemory`
-        See Also: :class:`wavelink.StatsEventMemory`
+        詳細は :class:`wavelink.StatsEventMemory` を参照
     cpu: :class:`wavelink.StatsEventCPU`
-        See Also: :class:`wavelink.StatsEventCPU`
+        詳細は :class:`wavelink.StatsEventCPU` を参照
     frames: :class:`wavelink.StatsEventFrames` | None
-        See Also: :class:`wavelink.StatsEventFrames`. This could be ``None``.
+        詳細は :class:`wavelink.StatsEventFrames` を参照。Noneの場合もある
     """
 
     def __init__(self, data: StatsResponse) -> None:
@@ -336,19 +334,18 @@ class StatsResponsePayload:
 
 
 class PlayerStatePayload:
-    """Represents the PlayerState information received via :meth:`~wavelink.Node.fetch_player_info` or
-    :meth:`~wavelink.Node.fetch_players`
+    """:meth:`~wavelink.Node.fetch_player_info` または :meth:`~wavelink.Node.fetch_players` で受け取るPlayerState情報を表現するクラス
 
     Attributes
     ----------
     time: int
-        Unix timestamp in milliseconds received from Lavalink.
+        Lavalinkから受信したUNIXタイムスタンプ（ミリ秒）
     position: int
-        The position of the track in milliseconds received from Lavalink.
+        Lavalinkから受信したトラックの再生位置（ミリ秒）
     connected: bool
-        Whether Lavalink is connected to the voice gateway.
+        Lavalinkがボイスゲートウェイに接続しているかどうか
     ping: int
-        The ping of the node to the Discord voice server in milliseconds (-1 if not connected).
+        ノードからDiscordボイスサーバーへのping（ミリ秒、未接続時は-1）
     """
 
     def __init__(self, data: PlayerState) -> None:
@@ -359,18 +356,17 @@ class PlayerStatePayload:
 
 
 class VoiceStatePayload:
-    """Represents the VoiceState information received via :meth:`~wavelink.Node.fetch_player_info` or
-    :meth:`~wavelink.Node.fetch_players`. This is the voice state information received via Discord and sent to your
-    Lavalink node.
+    """:meth:`~wavelink.Node.fetch_player_info` または :meth:`~wavelink.Node.fetch_players` で受け取るVoiceState情報を表現するクラス
+    Discordから受信しLavalinkノードへ送信されるボイス状態情報
 
     Attributes
     ----------
     token: str | None
-        The Discord voice token authenticated with. This is not the same as your bots token. Could be ``None``.
+        Discordのボイストークン（Botトークンとは異なる）。Noneの場合もある
     endpoint: str | None
-        The Discord voice endpoint connected to. Could be ``None``.
+        接続中のDiscordボイスエンドポイント。Noneの場合もある
     session_id: str | None
-        The Discord voice session ID autheticated with. Could be ``None``.
+        DiscordのボイスセッションID。Noneの場合もある
     """
 
     def __init__(self, data: VoiceStateResponse) -> None:
@@ -380,24 +376,24 @@ class VoiceStatePayload:
 
 
 class PlayerResponsePayload:
-    """Payload received when using :meth:`~wavelink.Node.fetch_player_info` or :meth:`~wavelink.Node.fetch_players`
+    """:meth:`~wavelink.Node.fetch_player_info` または :meth:`~wavelink.Node.fetch_players` で受け取るペイロード
 
     Attributes
     ----------
     guild_id: int
-        The guild ID as an int that this player is connected to.
+        このプレイヤーが接続しているギルドID（int型）
     track: :class:`wavelink.Playable` | None
-        The current track playing on Lavalink. Could be ``None`` if no track is playing.
+        現在Lavalinkで再生中のトラック。再生中でない場合はNone
     volume: int
-        The current volume of the player.
+        プレイヤーの現在の音量
     paused: bool
-        A bool indicating whether the player is paused.
+        プレイヤーが一時停止中かどうか
     state: :class:`wavelink.PlayerStatePayload`
-        The current state of the player. See: :class:`wavelink.PlayerStatePayload`.
+        プレイヤーの現在の状態。:class:`wavelink.PlayerStatePayload` を参照
     voice_state: :class:`wavelink.VoiceStatePayload`
-        The voice state infomration received via Discord and sent to Lavalink. See: :class:`wavelink.VoiceStatePayload`.
+        Discordから受信しLavalinkへ送信されたボイス状態。:class:`wavelink.VoiceStatePayload` を参照
     filters: :class:`wavelink.Filters`
-        The :class:`wavelink.Filters` currently associated with this player.
+        このプレイヤーに現在適用されている :class:`wavelink.Filters`
     """
 
     def __init__(self, data: PlayerResponse) -> None:
@@ -415,16 +411,16 @@ class PlayerResponsePayload:
 
 
 class GitResponsePayload:
-    """Represents Git information received via :meth:`wavelink.Node.fetch_info`
+    """:meth:`wavelink.Node.fetch_info` で受け取るGit情報を表現するクラス
 
     Attributes
     ----------
     branch: str
-        The branch this Lavalink server was built on.
+        このLavalinkサーバーがビルドされたブランチ名
     commit: str
-        The commit this Lavalink server was built on.
+        このLavalinkサーバーがビルドされたコミット
     commit_time: :class:`datetime.datetime`
-        The timestamp for when the commit was created.
+        このコミットが作成されたタイムスタンプ
     """
 
     def __init__(self, data: GitPayload) -> None:
@@ -436,22 +432,22 @@ class GitResponsePayload:
 
 
 class VersionResponsePayload:
-    """Represents Version information received via :meth:`wavelink.Node.fetch_info`
+    """:meth:`wavelink.Node.fetch_info` で受け取るバージョン情報を表現するクラス
 
     Attributes
     ----------
     semver: str
-        The full version string of this Lavalink server.
+        このLavalinkサーバーの完全なバージョン文字列
     major: int
-        The major version of this Lavalink server.
+        このLavalinkサーバーのメジャーバージョン
     minor: int
-        The minor version of this Lavalink server.
+        このLavalinkサーバーのマイナーバージョン
     patch: int
-        The patch version of this Lavalink server.
+        このLavalinkサーバーのパッチバージョン
     pre_release: str
-        The pre-release version according to semver as a ``.`` separated list of identifiers.
+        semverに従ったプレリリースバージョン（ドット区切りの識別子リスト）
     build: str | None
-        The build metadata according to semver as a ``.`` separated list of identifiers. Could be ``None``.
+        semverに従ったビルドメタデータ（ドット区切りの識別子リスト）。Noneの場合もある
     """
 
     def __init__(self, data: VersionPayload) -> None:
@@ -464,14 +460,14 @@ class VersionResponsePayload:
 
 
 class PluginResponsePayload:
-    """Represents Plugin information received via :meth:`wavelink.Node.fetch_info`
+    """:meth:`wavelink.Node.fetch_info` で受け取るプラグイン情報を表現するクラス
 
     Attributes
     ----------
     name: str
-        The plugin name.
+        プラグイン名
     version: str
-        The plugin version.
+        プラグインのバージョン
     """
 
     def __init__(self, data: PluginPayload) -> None:
@@ -480,26 +476,26 @@ class PluginResponsePayload:
 
 
 class InfoResponsePayload:
-    """Payload received when using :meth:`~wavelink.Node.fetch_info`
+    """:meth:`~wavelink.Node.fetch_info` で受け取るペイロード
 
     Attributes
     ----------
     version: :class:`VersionResponsePayload`
-        The version info payload for this Lavalink node in the :class:`VersionResponsePayload` object.
+        このLavalinkノードのバージョン情報（:class:`VersionResponsePayload` オブジェクト）
     build_time: :class:`datetime.datetime`
-        The timestamp when this Lavalink jar was built.
+        このLavalink jarがビルドされたタイムスタンプ
     git: :class:`GitResponsePayload`
-        The git info payload for this Lavalink node in the :class:`GitResponsePayload` object.
+        このLavalinkノードのGit情報（:class:`GitResponsePayload` オブジェクト）
     jvm: str
-        The JVM version this Lavalink node runs on.
+        このLavalinkノードが動作しているJVMのバージョン
     lavaplayer: str
-        The Lavaplayer version being used by this Lavalink node.
+        このLavalinkノードで使用されているLavaplayerのバージョン
     source_managers: list[str]
-        The enabled source managers for this node.
+        このノードで有効なソースマネージャー
     filters: list[str]
-        The enabled filters for this node.
+        このノードで有効なフィルター
     plugins: list[:class:`PluginResponsePayload`]
-        The enabled plugins for this node.
+        このノードで有効なプラグイン
     """
 
     def __init__(self, data: InfoResponse) -> None:
@@ -516,25 +512,21 @@ class InfoResponsePayload:
 
 
 class ExtraEventPayload:
-    """Payload received in the :func:`on_wavelink_extra_event` event.
+    """:func:`on_wavelink_extra_event` イベントで受け取るペイロード
 
-    This payload is created when an ``Unknown`` and ``Unhandled`` event is received from Lavalink, most likely via
-    a plugin.
+    このペイロードはLavalinkから ``Unknown`` または ``Unhandled`` なイベント（主にプラグイン経由）を受信した際に作成される
 
     .. note::
-
-        See the appropriate documentation of the plugin for the data sent with these events.
-
+        これらのイベントで送信されるデータの詳細は、該当プラグインのドキュメントを参照
 
     Attributes
     ----------
     node: :class:`~wavelink.Node`
-        The node that the event pertains to.
+        このイベントに関連するノード
     player: :class:`~wavelink.Player` | None
-        The player associated with this event. Could be None.
+        このイベントに関連するプレイヤー。Noneの場合もある
     data: dict[str, Any]
-        The raw data sent from Lavalink for this event.
-
+        このイベントでLavalinkから送信された生データ
 
     .. versionadded:: 3.1.0
     """

@@ -5,16 +5,16 @@ __all__ = ("NodeStatus", "TrackSource", "DiscordVoiceCloseType", "AutoPlayMode",
 
 
 class NodeStatus(enum.Enum):
-    """Enum representing the connection status of a Node.
+    """ノードの接続状態を表すEnum
 
     Attributes
     ----------
     DISCONNECTED
-        The Node has been disconnected or has never been connected previously.
+        ノードが切断されている、またはこれまで接続されたことがない状態
     CONNECTING
-        The Node is currently attempting to connect.
+        ノードが現在接続を試みている状態
     CONNECTED
-        The Node is currently connected.
+        ノードが現在接続されている状態
     """
 
     DISCONNECTED = 0
@@ -23,16 +23,16 @@ class NodeStatus(enum.Enum):
 
 
 class TrackSource(enum.Enum):
-    """Enum representing a :class:`Playable` source.
+    """再生可能なソースを表すEnum
 
     Attributes
     ----------
     YouTube
-        A source representing a track that comes from YouTube.
+        YouTubeからのトラックを表すソース
     YouTubeMusic
-        A source representing a track that comes from YouTube Music.
+        YouTube Musicからのトラックを表すソース
     SoundCloud
-        A source representing a track that comes from SoundCloud.
+        SoundCloudからのトラックを表すソース
     """
 
     YouTube = 0
@@ -41,7 +41,7 @@ class TrackSource(enum.Enum):
 
 
 class DiscordVoiceCloseType(enum.Enum):
-    """Enum representing the various Discord Voice Websocket Close Codes.
+    """いろいろなDiscord VoiceCloseTypeを表すEnum
 
     Attributes
     ----------
@@ -98,18 +98,17 @@ class DiscordVoiceCloseType(enum.Enum):
 
 
 class AutoPlayMode(enum.Enum):
-    """Enum representing the various AutoPlay modes.
+    """さまざまなAutoPlayモードを表すEnum
 
     Attributes
     ----------
     enabled
-        When enabled, AutoPlay will work fully autonomously and fill the auto_queue with recommended tracks.
-        If a song is put into a players standard queue, AutoPlay will use it as a priority.
+        有効の場合、AutoPlayは完全に自律的に動作し、auto_queueにおすすめトラックを追加します
+        プレイヤーの標準キューに曲が追加された場合は、それを優先的に使用します
     partial
-        When partial, AutoPlay will work fully autonomously but **will not** fill the auto_queue with
-        recommended tracks.
+        部分的の場合、AutoPlayは完全に自律的に動作しますが、auto_queueにおすすめトラックを追加**しません**
     disabled
-        When disabled, AutoPlay will not do anything automatically.
+        無効の場合、AutoPlayは自動的な動作を一切行いません
     """
 
     enabled = 0
@@ -118,16 +117,16 @@ class AutoPlayMode(enum.Enum):
 
 
 class QueueMode(enum.Enum):
-    """Enum representing the various modes on :class:`wavelink.Queue`
+    """さまざまな :class:`wavelink.Queue` のモードを表すEnum
 
     Attributes
     ----------
     normal
-        When set, the queue will not loop either track or history. This is the default.
+        このモードでは、キューも履歴もループしません。デフォルトの設定です
     loop
-        When set, the track will continuously loop.
+        このモードでは、トラックが連続してループ再生されます
     loop_all
-        When set, the queue will continuously loop through all tracks.
+        このモードでは、キュー内のすべてのトラックが連続してループ再生されます
     """
 
     normal = 0

@@ -36,14 +36,14 @@ Search: TypeAlias = "list[Playable] | Playlist"
 
 
 class Album:
-    """Container class representing Album data received via Lavalink.
+    """Lavalinkから受信したアルバムデータを表現するコンテナクラス
 
     Attributes
     ----------
     name: str | None
-        The album name. Could be ``None``.
+        アルバム名。Noneの場合もある
     url: str | None
-        The album url. Could be ``None``.
+        アルバムのURL。Noneの場合もある
     """
 
     def __init__(self, *, data: dict[Any, Any]) -> None:
@@ -52,14 +52,14 @@ class Album:
 
 
 class Artist:
-    """Container class representing Artist data received via Lavalink.
+    """Lavalinkから受信したアーティストデータを表現するコンテナクラス
 
     Attributes
     ----------
     url: str | None
-        The artist url. Could be ``None``.
+        アーティストのURL。Noneの場合もある
     artwork: str | None
-        The artist artwork url. Could be ``None``.
+        アーティストのアートワークURL。Noneの場合もある
     """
 
     def __init__(self, *, data: dict[Any, Any]) -> None:
@@ -68,25 +68,21 @@ class Artist:
 
 
 class Playable:
-    """The Wavelink Playable object which represents all tracks in Wavelink 3.
+    """Wavelink 3における全トラックを表現するWavelinkのPlayableオブジェクト
 
     .. note::
-
-        You should not construct this class manually.
+        このクラスを手動でインスタンス化しないこと
 
     .. container:: operations
 
         .. describe:: str(track)
-
-            The title of this playable.
+            このPlayableのタイトル
 
         .. describe:: repr(track)
-
-            The official string representation of this playable.
+            このPlayableの公式な文字列表現
 
         .. describe:: track == other
-
-            Whether this track is equal to another. Checks both the track encoding and identifier.
+            このトラックが他と等しいかどうか（エンコード値とidentifierで判定）
     """
 
     def __init__(self, data: TrackPayload, *, playlist: PlaylistInfo | None = None) -> None:
@@ -136,134 +132,118 @@ class Playable:
 
     @property
     def encoded(self) -> str:
-        """Property returning the encoded track string from Lavalink."""
+        """Lavalinkから受信したエンコード済みトラック文字列を返すプロパティ"""
         return self._encoded
 
     @property
     def identifier(self) -> str:
-        """Property returning the identifier of this track from its source.
+        """このトラックのソース上の識別子を返すプロパティ
 
-        E.g. YouTube ID or Spotify ID.
+        例: YouTube IDやSpotify ID
         """
         return self._identifier
 
     @property
     def is_seekable(self) -> bool:
-        """Property returning a bool whether this track can be used in seeking."""
+        """このトラックがシーク可能かどうかを返すプロパティ"""
         return self._is_seekable
 
     @property
     def author(self) -> str:
-        """Property returning the name of the author of this track."""
+        """このトラックの作者名を返すプロパティ"""
         return self._author
 
     @property
     def length(self) -> int:
-        """Property returning the tracks duration in milliseconds as an int."""
+        """このトラックの長さ（ミリ秒）をintで返すプロパティ"""
         return self._length
 
     @property
     def is_stream(self) -> bool:
-        """Property returning a bool indicating whether this track is a stream."""
+        """このトラックがストリームかどうかを返すプロパティ"""
         return self._is_stream
 
     @property
     def position(self) -> int:
-        """Property returning starting position of this track in milliseconds as an int."""
+        """このトラックの開始位置（ミリ秒）をintで返すプロパティ"""
         return self._position
 
     @property
     def title(self) -> str:
-        """Property returning the title/name of this track."""
+        """このトラックのタイトル/名前を返すプロパティ"""
         return self._title
 
     @property
     def uri(self) -> str | None:
-        """Property returning the URL to this track. Could be ``None``."""
+        """このトラックのURLを返すプロパティ。Noneの場合もある"""
         return self._uri
 
     @property
     def artwork(self) -> str | None:
-        """Property returning the URL of the artwork of this track. Could be ``None``."""
+        """このトラックのアートワークURLを返すプロパティ。Noneの場合もある"""
         return self._artwork
 
     @property
     def isrc(self) -> str | None:
-        """Property returning the ISRC (International Standard Recording Code) of this track. Could be ``None``."""
+        """このトラックのISRC（国際標準レコーディングコード）を返すプロパティ。Noneの場合もある"""
         return self._isrc
 
     @property
     def source(self) -> str:
-        """Property returning the source of this track as a ``str``.
-
-        E.g. "spotify" or "youtube".
-        """
+        """このトラックのソース名（例: "spotify" や "youtube"）をstrで返すプロパティ"""
         return self._source
 
     @property
     def album(self) -> Album:
-        """Property returning album data for this track."""
+        """このトラックのアルバムデータを返すプロパティ"""
         return self._album
 
     @property
     def artist(self) -> Artist:
-        """Property returning artist data for this track."""
+        """このトラックのアーティストデータを返すプロパティ"""
         return self._artist
 
     @property
     def preview_url(self) -> str | None:
-        """Property returning the preview URL for this track. Could be ``None``."""
+        """このトラックのプレビューURLを返すプロパティ。Noneの場合もある"""
         return self._preview_url
 
     @property
     def is_preview(self) -> bool | None:
-        """Property returning a bool indicating if this track is a preview. Could be ``None`` if unknown."""
+        """このトラックがプレビューかどうかを返すプロパティ。判別不能な場合はNone"""
         return self._is_preview
 
     @property
     def playlist(self) -> PlaylistInfo | None:
-        """Property returning a :class:`wavelink.PlaylistInfo`. Could be ``None``
-        if this track is not a part of a playlist.
+        """このトラックが属する :class:`wavelink.PlaylistInfo` を返すプロパティ。プレイリスト未所属ならNone
         """
         return self._playlist
 
     @property
     def recommended(self) -> bool:
-        """Property returning a bool indicating whether this track was recommended via AutoPlay."""
+        """このトラックがAutoPlayで推奨されたものかどうかを返すプロパティ"""
         return self._recommended
 
     @property
     def extras(self) -> ExtrasNamespace:
-        """Property returning a :class:`~wavelink.ExtrasNamespace` of extras for this :class:`Playable`.
+        """:class:`~wavelink.ExtrasNamespace` 型の追加情報を返すプロパティ
 
-        You can set this property with a :class:`dict` of valid :class:`str` keys to any valid ``JSON`` value,
-        or a :class:`~wavelink.ExtrasNamespace`.
-
-        If a dict is passed, it will be converted into an :class:`~wavelink.ExtrasNamespace`,
-        which can be converted back to a dict with dict(...). Additionally, you can also use list or tuple on
-        :class:`~wavelink.ExtrasNamespace`.
-
-        The extras dict will be sent to Lavalink as the ``userData`` field.
-
+        このプロパティには有効な ``str`` キーと任意のJSON値を持つdict、または :class:`~wavelink.ExtrasNamespace` を設定可能
+        dictを渡すと自動的に :class:`~wavelink.ExtrasNamespace` に変換される
+        extrasはLavalinkの ``userData`` フィールドとして送信される
 
         .. warning::
-
-            This is only available when using Lavalink 4+ (**Non BETA**) versions.
-
+            この機能はLavalink 4+（BETA以外）でのみ利用可能
 
         Examples
         --------
-
             .. code:: python
-
                 track: wavelink.Playable = wavelink.Playable.search("QUERY")
                 track.extras = {"requester_id": 1234567890}
-
-                # later...
+                # 後で...
                 print(track.extras.requester_id)
-                # or
+                # または
                 print(dict(track.extras)["requester_id"])
-
 
         .. versionadded:: 3.1.0
         """
@@ -278,20 +258,17 @@ class Playable:
 
     @property
     def raw_data(self) -> TrackPayload:
-        """The raw data for this ``Playable`` received via ``Lavalink``.
+        """この ``Playable`` の生データ（Lavalinkから受信）
 
-        You can use this data to reconstruct this ``Playable`` object.
-
+        このデータを使って ``Playable`` オブジェクトを再構築可能
 
         Examples
         --------
-
             .. code:: python3
-
-                # For example purposes...
+                # 例...
                 old_data = track.raw_data
 
-                # Later...
+                # 後で...
                 track: wavelink.Playable = wavelink.Playable(old_data)
 
 
@@ -303,90 +280,64 @@ class Playable:
     async def search(
         cls, query: str, /, *, source: TrackSource | str | None = TrackSource.YouTubeMusic, node: Node | None = None
     ) -> Search:
-        """Search for a list of :class:`~wavelink.Playable` or a :class:`~wavelink.Playlist`, with the given query.
+        """指定クエリで :class:`~wavelink.Playable` または :class:`~wavelink.Playlist` を検索するクラスメソッド
 
         .. note::
-
-            This method differs from :meth:`wavelink.Pool.fetch_tracks` in that it will apply a relevant search prefix
-            for you when a URL is **not** provided. This prefix can be controlled via the ``source`` keyword argument.
-
-
+            このメソッドは :meth:`wavelink.Pool.fetch_tracks` と異なり、URLでない場合は適切な検索プレフィックスを自動付与する（source引数で制御可能）
         .. note::
-
-            This method of searching is preferred over, :meth:`wavelink.Pool.fetch_tracks`.
-
+            検索にはこのメソッドの利用を推奨
 
         Parameters
         ----------
         query: str
-            The query to search tracks for. If this is **not** a URL based search this method will provide an
-            appropriate search prefix based on what is provided to the ``source`` keyword only parameter,
-            or it's default.
-
-            If this query **is a URL**, a search prefix will **not** be used.
+            検索クエリ。URLでない場合は ``source`` キーワード引数に応じたプレフィックスが自動付与される
+            URLの場合はプレフィックスは付与されない
         source: :class:`TrackSource` | str | None
-            This parameter determines which search prefix to use when searching for tracks.
-            If ``None`` is provided, no prefix will be used, however this behaviour is default regardless of what
-            is provided **when a URL is found**.
-
-            For basic searches, E.g. YouTube, YouTubeMusic and SoundCloud, see: :class:`wavelink.TrackSource`.
-            Otherwise, a ``str`` may be provided for plugin based searches, E.g. "spsearch:" for the
-            LavaSrc Spotify based search.
-
-            Defaults to :attr:`wavelink.TrackSource.YouTubeMusic` which is equivalent to "ytmsearch:".
+            検索時のプレフィックスを指定。Noneの場合は付与しない（ただしURLの場合は常に付与しない）
+            基本的な検索（YouTube, YouTubeMusic, SoundCloud）は :class:`wavelink.TrackSource` を参照
+            プラグイン検索時は ``str`` で "spsearch:" などを指定
+            デフォルトは :attr:`wavelink.TrackSource.YouTubeMusic`（"ytmsearch:" 相当）
         node: :class:`~wavelink.Node` | None
-            An optional :class:`~wavelink.Node` to use when searching for tracks. Defaults to ``None``, which uses
-            the :class:`~wavelink.Pool`'s automatic node selection.
-
+            検索に使用する :class:`~wavelink.Node`。省略時は自動選択
 
         Returns
         -------
         :class:`wavelink.Search`
-            A union of either list[:class:`Playable`] or :class:`Playlist`. Could return and empty list,
-            if no tracks or playlist were found.
+            :class:`Playable` のリストまたは :class:`Playlist` のいずれか。該当なしの場合は空リスト
 
         Raises
         ------
         LavalinkLoadException
-            Exception raised when Lavalink fails to load results based on your query.
-
+            クエリに基づくLavalinkのロード失敗時に発生
 
         Examples
         --------
-
         .. code:: python3
-
-            # Search for tracks, with the default "ytsearch:" prefix.
+            # デフォルト（ytsearch:）で検索
             tracks: wavelink.Search = await wavelink.Playable.search("Ocean Drive")
             if not tracks:
-                # No tracks were found...
+                # トラックが見つからない場合の処理
                 ...
 
-            # Search for tracks, with a URL.
+            # URLで検索
             tracks: wavelink.Search = await wavelink.Playable.search("https://www.youtube.com/watch?v=KDxJlW6cxRk")
             ...
 
-            # Search for tracks, using Spotify and the LavaSrc Plugin.
+            # Spotify/LavaSrcプラグインで検索
             tracks: wavelink.Search = await wavelink.Playable.search("4b93D55xv3YCH5mT4p6HPn", source="spsearch")
             ...
 
-            # Search for tracks, using Spotify and the LavaSrc Plugin, with a URL.
+            # Spotify/LavaSrcプラグインでURL検索
             tracks: wavelink.Search = await wavelink.Playable.search("https://open.spotify.com/track/4b93D55xv3YCH5mT4p6HPn")
             ...
 
-            # Search for a playlist, using Spotify and the LavaSrc Plugin.
-            # or alternatively any other playlist URL from another source like YouTube.
+            # プレイリスト検索
             tracks: wavelink.Search = await wavelink.Playable.search("https://open.spotify.com/playlist/37i9dQZF1DWXRqgorJj26U")
             ...
 
 
         .. versionchanged:: 3.0.0
-
-            This method has been changed significantly in version ``3.0.0``. This method has been simplified to provide
-            an easier interface for searching tracks. See the above documentation and examples.
-
-            You can no longer provide a :class:`wavelink.Node` to use for searching as this method will now select the
-            most appropriate node from the :class:`wavelink.Pool`.
+            v3.0.0で大幅に仕様変更。ノード指定は自動選択に統一
         """
         prefix: TrackSource | str | None = _source_mapping.get(source, source)
         check = yarl.URL(query)
@@ -406,86 +357,56 @@ class Playable:
 
 
 class Playlist:
-    """The wavelink Playlist container class.
+    """wavelinkのプレイリストコンテナクラス
 
-    This class is created and returned via both :meth:`Playable.search` and :meth:`wavelink.Pool.fetch_tracks`.
+    このクラスは :meth:`Playable.search` や :meth:`wavelink.Pool.fetch_tracks` で生成・返却される
 
-    It contains various information about the playlist and a list of :class:`Playable` that can be used directly in
-    :meth:`wavelink.Player.play`. See below for various supported operations.
-
+    プレイリスト情報と :class:`Playable` のリストを保持し、:meth:`wavelink.Player.play` で直接利用可能
 
     .. warning::
-
-        You should not instantiate this class manually,
-        use :meth:`Playable.search` or :meth:`wavelink.Pool.fetch_tracks` instead.
-
-
+        このクラスを手動でインスタンス化しないこと。:meth:`Playable.search` または :meth:`wavelink.Pool.fetch_tracks` を利用
     .. warning::
-
-        You can not use ``.search`` directly on this class, see: :meth:`Playable.search`.
-
-
+        このクラスで ``.search`` を直接呼び出すことはできない。:meth:`Playable.search` を参照
     .. note::
-
-        This class can be directly added to :class:`wavelink.Queue` identical to :class:`Playable`. When added,
-        all tracks contained in this playlist, will be individually added to the :class:`wavelink.Queue`.
-
+        このクラスは :class:`Playable` と同様に :class:`wavelink.Queue` へ直接追加可能。追加時は全トラックが個別にキューへ追加される
 
     .. container:: operations
 
         .. describe:: str(x)
-
-            Return the name associated with this playlist.
-
+            プレイリスト名を返す
         .. describe:: repr(x)
-
-            Return the official string representation of this playlist.
-
+            プレイリストの公式な文字列表現
         .. describe:: x == y
-
-            Compare the equality of playlist.
-
+            プレイリストの等価比較
         .. describe:: len(x)
-
-            Return an integer representing the amount of tracks contained in this playlist.
-
+            プレイリスト内のトラック数を返す
         .. describe:: x[0]
-
-            Return a track contained in this playlist with the given index.
-
+            指定インデックスのトラックを返す
         .. describe:: x[0:2]
-
-            Return a slice of tracks contained in this playlist.
-
+            指定スライスのトラックリストを返す
         .. describe:: for x in y
-
-            Iterate over the tracks contained in this playlist.
-
+            プレイリスト内のトラックをイテレート
         .. describe:: reversed(x)
-
-            Reverse the tracks contained in this playlist.
-
+            プレイリスト内のトラックを逆順イテレート
         .. describe:: x in y
-
-            Check if a :class:`Playable` is contained in this playlist.
-
+            プレイリストに :class:`Playable` が含まれるか判定
 
     Attributes
     ----------
     name: str
-        The name of this playlist.
+        プレイリスト名
     selected: int
-        The index of the selected track from Lavalink.
+        Lavalinkで選択されたトラックのインデックス
     tracks: list[:class:`Playable`]
-        A list of :class:`Playable` contained in this playlist.
+        プレイリスト内の :class:`Playable` のリスト
     type: str | None
-        An optional ``str`` identifying the type of playlist this is. Only available when a plugin is used.
+        プレイリスト種別（プラグイン利用時のみ）
     url: str | None
-        An optional ``str`` to the URL of this playlist. Only available when a plugin is used.
+        プレイリストのURL（プラグイン利用時のみ）
     artwork: str | None
-        An optional ``str`` to the artwork of this playlist. Only available when a plugin is used.
+        プレイリストのアートワークURL（プラグイン利用時のみ）
     author: str | None
-        An optional ``str`` of the author of this playlist. Only available when a plugin is used.
+        プレイリストの作者（プラグイン利用時のみ）
     """
 
     def __init__(self, data: PlaylistPayload) -> None:
@@ -539,29 +460,24 @@ class Playlist:
         return self.tracks.pop(index)
 
     def track_extras(self, **attrs: object) -> None:
-        """Method which sets attributes to all :class:`Playable` in this playlist, with the provided keyword arguments.
+        """このプレイリスト内の全 :class:`Playable` に指定キーワード属性を一括付与するメソッド
 
-        This is useful when you need to attach state to your :class:`Playable`, E.g. create a requester attribute.
+        :class:`Playable` に状態（例: requester属性）を付与したい場合に便利
 
         .. warning::
-
-            If you try to override any existing property of :class:`Playable` this method will fail.
-
+            :class:`Playable` の既存プロパティを上書きしようとすると失敗する
 
         Parameters
         ----------
         **attrs
-            The keyword arguments to set as attribute name=value on each :class:`Playable`.
+            各 :class:`Playable` に付与する属性名=値
 
         Examples
         --------
-
-            .. code:: python3
-
-                playlist.track_extras(requester=ctx.author)
-
-                track: wavelink.Playable = playlist[0]
-                print(track.requester)
+        .. code:: python3
+            playlist.track_extras(requester=ctx.author)
+            track: wavelink.Playable = playlist[0]
+            print(track.requester)
         """
         for track in self.tracks:
             for name, value in attrs.items():
@@ -569,36 +485,24 @@ class Playlist:
 
     @property
     def extras(self) -> ExtrasNamespace:
-        """Property returning a :class:`~wavelink.ExtrasNamespace` of extras for this :class:`Playlist`.
+        """:class:`~wavelink.ExtrasNamespace` 型の追加情報を返すプロパティ
 
-        You can set this property with a :class:`dict` of valid :class:`str` keys to any valid ``JSON`` value,
-        or a :class:`~wavelink.ExtrasNamespace`.
-
-        If a dict is passed, it will be converted into an :class:`~wavelink.ExtrasNamespace`,
-        which can be converted back to a dict with ``dict(...)``. Additionally, you can also use list or tuple on
-        :class:`~wavelink.ExtrasNamespace`.
-
-        The extras dict will be sent to Lavalink as the ``userData`` field for each track in the playlist.
-
+        このプロパティには有効な ``str`` キーと任意のJSON値を持つdict、または :class:`~wavelink.ExtrasNamespace` を設定可能
+        dictを渡すと自動的に :class:`~wavelink.ExtrasNamespace` に変換される
+        extrasはプレイリスト内各トラックの ``userData`` フィールドとしてLavalinkに送信される
 
         .. warning::
-
-            This is only available when using Lavalink 4+ (**Non BETA**) versions.
-
+            この機能はLavalink 4+（BETA以外）でのみ利用可能
 
         Examples
         --------
-
             .. code:: python
-
                 playlist: wavelink.Search = wavelink.Playable.search("QUERY")
                 playlist.extras = {"requester_id": 1234567890}
-
-                # later...
+                # 後で...
                 print(track.extras.requester_id)
-                # or
+                # または
                 print(dict(track.extras)["requester_id"])
-
 
         .. versionadded:: 3.2.0
         """
@@ -616,29 +520,28 @@ class Playlist:
 
 
 class PlaylistInfo:
-    """The wavelink PlaylistInfo container class.
+    """wavelinkのPlaylistInfoコンテナクラス
 
-    It contains various information about the playlist but **does not** contain the tracks associated with this
-    playlist.
+    プレイリストの各種情報を保持するが、トラック自体は含まない
 
-    This class is used to provided information about the original :class:`wavelink.Playlist` on tracks.
+    このクラスはトラックに元の :class:`wavelink.Playlist` 情報を付与するために利用される
 
     Attributes
     ----------
     name: str
-        The name of this playlist.
+        プレイリスト名
     selected: int
-        The index of the selected track from Lavalink.
+        Lavalinkで選択されたトラックのインデックス
     tracks: int
-        The amount of tracks this playlist originally contained.
+        プレイリストが元々含んでいたトラック数
     type: str | None
-        An optional ``str`` identifying the type of playlist this is. Only available when a plugin is used.
+        プレイリスト種別（プラグイン利用時のみ）
     url: str | None
-        An optional ``str`` to the URL of this playlist. Only available when a plugin is used.
+        プレイリストのURL（プラグイン利用時のみ）
     artwork: str | None
-        An optional ``str`` to the artwork of this playlist. Only available when a plugin is used.
+        プレイリストのアートワークURL（プラグイン利用時のみ）
     author: str | None
-        An optional ``str`` of the author of this playlist. Only available when a plugin is used.
+        プレイリストの作者（プラグイン利用時のみ）
     """
 
     __slots__ = ("name", "selected", "tracks", "type", "url", "artwork", "author")

@@ -60,53 +60,44 @@ Method = Literal["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"]
 
 
 class Node:
-    """The Node represents a connection to Lavalink.
+    """NodeはLavalinkへの接続を表すクラス
 
-    The Node is responsible for keeping the websocket alive, resuming session, sending API requests and keeping track
-    of connected all :class:`~wavelink.Player`.
+    WebSocketの維持やセッションの再開、APIリクエストの送信、接続中の全 :class:`~wavelink.Player` の管理などを担当
 
     .. container:: operations
 
         .. describe:: node == other
 
-            Equality check to determine whether this Node is equal to another reference of a Node.
+            このNodeが他のNode参照と等しいかどうかを判定
 
         .. describe:: repr(node)
 
-            The official string representation of this Node.
+            このNodeの公式な文字列表現
 
     Parameters
     ----------
     identifier: str | None
-        A unique identifier for this Node. Could be ``None`` to generate a random one on creation.
+        このNodeの一意な識別子。Noneの場合は自動生成
     uri: str
-        The URL/URI that wavelink will use to connect to Lavalink. Usually this is in the form of something like:
-        ``http://localhost:2333`` which includes the port. But you could also provide a domain which won't require a
-        port like ``https://lavalink.example.com`` or a public IP address and port like ``http://111.333.444.55:2333``.
+        Lavalinkに接続するためのURL/URI。例: ``http://localhost:2333`` やドメイン、IPアドレス+ポートなど
     password: str
-        The password used to connect and authorize this Node.
+        このNodeに接続・認証するためのパスワード
     session: aiohttp.ClientSession | None
-        An optional :class:`aiohttp.ClientSession` used to connect this Node over websocket and REST.
-        If ``None``, one will be generated for you. Defaults to ``None``.
+        WebSocketやREST接続用の :class:`aiohttp.ClientSession`。Noneなら自動生成
     heartbeat: Optional[float]
-        A ``float`` in seconds to ping your websocket keep alive. Usually you would not change this.
+        WebSocketのキープアライブ間隔（秒）。通常は変更不要
     retries: int | None
-        A ``int`` of retries to attempt when connecting or reconnecting this Node. When the retries are exhausted
-        the Node will be closed and cleaned-up. ``None`` will retry forever. Defaults to ``None``.
+        接続や再接続時のリトライ回数。Noneなら無限リトライ。デフォルトはNone
     client: :class:`discord.Client` | None
-        The :class:`discord.Client` or subclasses, E.g. ``commands.Bot`` used to connect this Node. If this is *not*
-        passed you must pass this to :meth:`wavelink.Pool.connect`.
+        このNodeに接続する :class:`discord.Client` またはそのサブクラス（例: commands.Bot）。未指定の場合は :meth:`wavelink.Pool.connect` で指定が必要
     resume_timeout: Optional[int]
-        The seconds this Node should configure Lavalink for resuming its current session in case of network issues.
-        If this is ``0`` or below, resuming will be disabled. Defaults to ``60``.
+        ネットワーク障害時にセッション再開を有効にする秒数。0以下で無効。デフォルトは60
     inactive_player_timeout: int | None
-        Set the default for :attr:`wavelink.Player.inactive_timeout` on every player that connects to this node.
-        Defaults to ``300``.
+        このNodeに接続する各Playerの :attr:`wavelink.Player.inactive_timeout` のデフォルト値。デフォルトは300
     inactive_channel_tokens: int | None
-        Sets the default for :attr:`wavelink.Player.inactive_channel_tokens` on every player that connects to this node.
-        Defaults to ``3``.
+        このNodeに接続する各Playerの :attr:`wavelink.Player.inactive_channel_tokens` のデフォルト値。デフォルトは3
 
-        See also: :func:`on_wavelink_inactive_player`.
+        詳細: :func:`on_wavelink_inactive_player` も参照
     """
 
     def __init__(
@@ -182,45 +173,42 @@ class Node:
 
     @property
     def identifier(self) -> str:
-        """The unique identifier for this :class:`Node`.
-
+        """この :class:`Node` の一意な識別子
 
         .. versionchanged:: 3.0.0
 
-            This property was previously known as ``id``.
+            このプロパティは以前 ``id`` という名前だった
         """
         return self._identifier
 
     @property
     def uri(self) -> str:
-        """The URI used to connect this :class:`Node` to Lavalink."""
+        """この :class:`Node` をLavalinkに接続するためのURI"""
         return self._uri
 
     @property
     def status(self) -> NodeStatus:
-        """The current :class:`Node` status.
+        """現在の :class:`Node` の状態
 
-        Refer to: :class:`~wavelink.NodeStatus`
+        参照: :class:`~wavelink.NodeStatus`
         """
         return self._status
 
     @property
     def players(self) -> dict[int, Player]:
-        """A mapping of :attr:`discord.Guild.id` to :class:`~wavelink.Player`.
-
+        """:attr:`discord.Guild.id` と :class:`~wavelink.Player` のマッピング
 
         .. versionchanged:: 3.1.1
 
-            This property now returns a shallow copy of the internal mapping.
+            このプロパティは内部マッピングのシャローコピーを返すようになった
         """
         return self._players.copy()
 
     @property
     def client(self) -> discord.Client | None:
-        """Returns the :class:`discord.Client` associated with this :class:`Node`.
+        """この :class:`Node` に紐づく :class:`discord.Client` を返す
 
-        Could be ``None`` if it has not been set yet.
-
+        未設定の場合は ``None`` となる
 
         .. versionadded:: 3.0.0
         """
@@ -228,7 +216,7 @@ class Node:
 
     @property
     def password(self) -> str:
-        """Returns the password used to connect this :class:`Node` to Lavalink.
+        """この :class:`Node` をLavalinkに接続する際のパスワードを返す
 
         .. versionadded:: 3.0.0
         """
@@ -236,7 +224,7 @@ class Node:
 
     @property
     def heartbeat(self) -> float:
-        """Returns the duration in seconds that the :class:`Node` websocket should send a heartbeat.
+        """この :class:`Node` のWebSocketが送信するハートビート間隔（秒）を返す
 
         .. versionadded:: 3.0.0
         """
@@ -244,7 +232,7 @@ class Node:
 
     @property
     def session_id(self) -> str | None:
-        """Returns the Lavalink session ID. Could be None if this :class:`Node` has not connected yet.
+        """LavalinkのセッションIDを返す。未接続の場合はNone
 
         .. versionadded:: 3.0.0
         """
@@ -260,21 +248,20 @@ class Node:
             await self.close()
 
     async def close(self, eject: bool = False) -> None:
-        """Method to close this Node and cleanup.
+        """このNodeをクローズしクリーンアップするメソッド
 
-        After this method has finished, the event ``on_wavelink_node_closed`` will be fired.
+        このメソッドの完了後、 ``on_wavelink_node_closed`` イベントが発火される
 
-        This method renders the Node websocket disconnected and disconnects all players.
+        このメソッドはNodeのWebSocketを切断し、全てのPlayerも切断状態にする
 
         Parameters
         ----------
         eject: bool
-            If ``True``, this will remove the Node from the Pool. Defaults to ``False``.
-
+            ``True`` の場合、このNodeをPoolから除外する。デフォルトは ``False``
 
         .. versionchanged:: 3.2.1
 
-            Added the ``eject`` parameter. Fixed a bug where the connected Players were not being disconnected.
+            ``eject`` パラメータを追加。接続中のPlayerが切断されないバグを修正
         """
         disconnected: list[Player] = []
 
@@ -322,43 +309,37 @@ class Node:
     async def send(
         self, method: Method = "GET", *, path: str, data: Any | None = None, params: dict[str, Any] | None = None
     ) -> Any:
-        """Method for making requests to the Lavalink node.
+        """Lavalinkノードへリクエストを送信するメソッド
 
         .. warning::
 
-            Usually you wouldn't use this method. Please use the built in methods of :class:`~Node`, :class:`~Pool`
-            and :class:`~wavelink.Player`, unless you need to send specific plugin data to Lavalink.
+            通常このメソッドは直接使わない。 :class:`~Node`、:class:`~Pool`、:class:`~wavelink.Player` の組み込みメソッドを利用すること
+            特定のプラグインデータをLavalinkへ送信したい場合のみ使用
 
-            Using this method may have unwanted side effects on your players and/or nodes.
+            このメソッドの利用はPlayerやNodeに予期しない副作用をもたらす可能性がある
 
         Parameters
         ----------
         method: Optional[str]
-            The method to use when making this request. Available methods are
-            "GET", "POST", "PATCH", "PUT", "DELETE" and "OPTIONS". Defaults to "GET".
+            このリクエストで使用するHTTPメソッド。"GET"、"POST"、"PATCH"、"PUT"、"DELETE"、"OPTIONS" から選択。デフォルトは"GET"
         path: str
-            The path to make this request to. E.g. "/v4/stats".
+            リクエスト先のパス。例: "/v4/stats"
         data: Any | None
-            The optional JSON data to send along with your request to Lavalink. This should be a dict[str, Any]
-            and able to be converted to JSON.
+            リクエストに付与するJSONデータ（dict[str, Any]形式でJSON変換可能なもの）
         params: Optional[dict[str, Any]]
-            An optional dict of query parameters to send with your request to Lavalink. If you include your query
-            parameters in the ``path`` parameter, do not pass them here as well. E.g. {"thing": 1, "other": 2}
-            would equate to "?thing=1&other=2".
+            クエリパラメータのdict。 ``path`` にクエリを含める場合はここに渡さないこと。例: {"thing": 1, "other": 2} → "?thing=1&other=2"
 
         Returns
         -------
         Any
-            The response from Lavalink which will either be None, a str or JSON.
+            Lavalinkからのレスポンス。None、str、またはJSON
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.0.0
         """
@@ -415,27 +396,23 @@ class Node:
                 raise LavalinkException(data=exc_data)
 
     async def fetch_players(self) -> list[PlayerResponsePayload]:
-        """Method to fetch the player information Lavalink holds for every connected player on this node.
+        """このノードに接続中の全プレイヤー情報をLavalinkから取得するメソッド
 
         .. warning::
 
-            This payload is not the same as the :class:`wavelink.Player` class. This is the data received from
-            Lavalink about the players.
-
+            このペイロードは :class:`wavelink.Player` クラスとは異なる。Lavalinkから受信した生データ
 
         Returns
         -------
         list[:class:`PlayerResponsePayload`]
-            A list of :class:`PlayerResponsePayload` representing each player connected to this node.
+            このノードに接続中の各プレイヤーを表す :class:`PlayerResponsePayload` のリスト
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.1.0
         """
@@ -462,33 +439,28 @@ class Node:
                 raise LavalinkException(data=exc_data)
 
     async def fetch_player_info(self, guild_id: int, /) -> PlayerResponsePayload | None:
-        """Method to fetch the player information Lavalink holds for the specific guild.
+        """指定したギルドのプレイヤー情報をLavalinkから取得するメソッド
 
         .. warning::
 
-            This payload is not the same as the :class:`wavelink.Player` class. This is the data received from
-            Lavalink about the player. See: :meth:`~wavelink.Node.get_player`
-
+            このペイロードは :class:`wavelink.Player` クラスとは異なる。Lavalinkから受信した生データ。:meth:`~wavelink.Node.get_player` も参照
 
         Parameters
         ----------
         guild_id: int
-            The ID of the guild you want to fetch info for.
+            情報を取得したいギルドのID
 
         Returns
         -------
         :class:`PlayerResponsePayload` | None
-            The :class:`PlayerResponsePayload` representing the player info for the guild ID connected to this node.
-            Could be ``None`` if no player is found with the given guild ID.
+            指定ギルドIDに紐づくプレイヤー情報。該当がなければ ``None``
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.1.0
         """
@@ -593,21 +565,19 @@ class Node:
                 raise LavalinkException(data=exc_data)
 
     async def fetch_info(self) -> InfoResponsePayload:
-        """Method to fetch this Lavalink Nodes info response data.
+        """このLavalinkノードのinfoレスポンスデータを取得するメソッド
 
         Returns
         -------
         :class:`InfoResponsePayload`
-            The :class:`InfoResponsePayload` associated with this Node.
+            このNodeに紐づく :class:`InfoResponsePayload`
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.1.0
         """
@@ -634,21 +604,19 @@ class Node:
                 raise LavalinkException(data=exc_data)
 
     async def fetch_stats(self) -> StatsResponsePayload:
-        """Method to fetch this Lavalink Nodes stats response data.
+        """このLavalinkノードのstatsレスポンスデータを取得するメソッド
 
         Returns
         -------
         :class:`StatsResponsePayload`
-            The :class:`StatsResponsePayload` associated with this Node.
+            このNodeに紐づく :class:`StatsResponsePayload`
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.1.0
         """
@@ -673,21 +641,19 @@ class Node:
             raise LavalinkException(data=exc_data)
 
     async def fetch_version(self) -> str:
-        """Method to fetch this Lavalink version string.
+        """このLavalinkノードのバージョン文字列を取得するメソッド
 
         Returns
         -------
         str
-            The version string associated with this Lavalink node.
+            このLavalinkノードのバージョン文字列
 
         Raises
         ------
         LavalinkException
-            An error occurred while making this request to Lavalink.
+            リクエスト時にエラーが発生した場合
         NodeException
-            An error occured while making this request to Lavalink,
-            and Lavalink was unable to send any error information.
-
+            リクエスト時にエラーが発生し、Lavalinkからエラー情報が返されなかった場合
 
         .. versionadded:: 3.1.0
         """
@@ -695,30 +661,29 @@ class Node:
         return data
 
     def get_player(self, guild_id: int, /) -> Player | None:
-        """Return a :class:`~wavelink.Player` associated with the provided :attr:`discord.Guild.id`.
+        """指定した :attr:`discord.Guild.id` に紐づく :class:`~wavelink.Player` を返す
 
         Parameters
         ----------
         guild_id: int
-            The :attr:`discord.Guild.id` to retrieve a :class:`~wavelink.Player` for.
+            :attr:`discord.Guild.id` を指定し、そのギルドの :class:`~wavelink.Player` を取得
 
         Returns
         -------
         Optional[:class:`~wavelink.Player`]
-            The Player associated with this guild ID. Could be None if no :class:`~wavelink.Player` exists
-            for this guild.
+            指定ギルドIDに紐づくPlayer。該当がなければNone
         """
         return self._players.get(guild_id, None)
 
 
 class Pool:
-    """The wavelink Pool represents a collection of :class:`~wavelink.Node` and helper methods for searching tracks.
+    """wavelinkのPoolは :class:`~wavelink.Node` のコレクションとトラック検索用のヘルパーメソッドをまとめたクラス
 
-    To connect a :class:`~wavelink.Node` please use this Pool.
+    :class:`~wavelink.Node` への接続はこのPoolを使う
 
     .. note::
 
-        All methods and attributes on this class are class level, not instance. Do not create an instance of this class.
+        このクラスの全メソッド・属性はクラスレベル。インスタンス化しないこと
     """
 
     __nodes: ClassVar[dict[str, Node]] = {}
@@ -728,39 +693,33 @@ class Pool:
     async def connect(
         cls, *, nodes: Iterable[Node], client: discord.Client | None = None, cache_capacity: int | None = None
     ) -> dict[str, Node]:
-        """Connect the provided Iterable[:class:`Node`] to Lavalink.
+        """指定したIterable[:class:`Node`]をLavalinkに接続するクラスメソッド
 
         Parameters
         ----------
         nodes: Iterable[:class:`Node`]
-            The :class:`Node`'s to connect to Lavalink.
+            Lavalinkに接続する :class:`Node` のIterable
         client: :class:`discord.Client` | None
-            The :class:`discord.Client` to use to connect the :class:`Node`. If the Node already has a client
-            set, this method will **not** override it. Defaults to None.
+            :class:`Node` の接続に使用する :class:`discord.Client`。Node側でclientが既に設定されている場合は上書きしない。デフォルトはNone
         cache_capacity: int | None
-            An optional integer of the amount of track searches to cache. This is an experimental mode.
-            Passing ``None`` will disable this experiment. Defaults to ``None``.
+            トラック検索結果のキャッシュ数（実験的機能）。Noneでキャッシュ無効。デフォルトはNone
 
         Returns
         -------
         dict[str, :class:`Node`]
-            A mapping of :attr:`Node.identifier` to :class:`Node` associated with the :class:`Pool`.
-
+            :attr:`Node.identifier` をキー、:class:`Node` を値とする :class:`Pool` のマッピング
 
         Raises
         ------
         AuthorizationFailedException
-            The node password was incorrect.
+            ノードのパスワードが間違っている場合に発生
         InvalidClientException
-            The :class:`discord.Client` passed was not valid.
+            渡された :class:`discord.Client` が不正な場合に発生
         NodeException
-            The node failed to connect properly. Please check that your Lavalink version is version 4.
-
+            ノードの接続に失敗した場合に発生。Lavalinkのバージョンが4であることやポート設定を確認
 
         .. versionchanged:: 3.0.0
-
-            The ``client`` parameter is no longer required.
-            Added the ``cache_capacity`` parameter.
+            ``client`` パラメータが必須でなくなった。``cache_capacity`` パラメータが追加
         """
         for node in nodes:
             client_ = node.client or client
@@ -821,10 +780,9 @@ class Pool:
 
     @classmethod
     async def close(cls) -> None:
-        """Close and clean up all :class:`~wavelink.Node` on this Pool.
+        """このPool上の全 :class:`~wavelink.Node` をクローズ・クリーンアップするクラスメソッド
 
-        This calls :meth:`wavelink.Node.close` on each node.
-
+        各ノードに対して :meth:`wavelink.Node.close` を呼び出す
 
         .. versionadded:: 3.0.0
         """
@@ -833,36 +791,32 @@ class Pool:
 
     @classproperty
     def nodes(cls) -> dict[str, Node]:
-        """A mapping of :attr:`Node.identifier` to :class:`Node` that have previously been successfully connected.
-
+        """:attr:`Node.identifier` をキー、:class:`Node` を値とする、これまでに正常接続されたノードのマッピングを返すプロパティ
 
         .. versionchanged:: 3.0.0
-
-            This property now returns a copy.
+            このプロパティはコピーを返すようになった
         """
         nodes = cls.__nodes.copy()
         return nodes
 
     @classmethod
     def get_node(cls, identifier: str | None = None, /) -> Node:
-        """Retrieve a :class:`Node` from the :class:`Pool` with the given identifier.
+        """指定したidentifierの :class:`Node` を :class:`Pool` から取得するクラスメソッド
 
-        If no identifier is provided, this method returns the ``best`` node.
+        identifierを指定しない場合は「最適」なノードを返す
 
         Parameters
         ----------
         identifier: str | None
-            An optional identifier to retrieve a :class:`Node`.
+            取得したい :class:`Node` のidentifier（省略可）
 
         Raises
         ------
         InvalidNodeException
-            Raised when a Node can not be found, or no :class:`Node` exists on the :class:`Pool`.
-
+            指定したidentifierのNodeが見つからない場合、またはPoolにNodeが存在しない場合に発生
 
         .. versionchanged:: 3.0.0
-
-            The ``id`` parameter was changed to ``identifier`` and is positional only.
+            ``id`` パラメータが ``identifier`` へ変更され、位置専用引数になった
         """
         if identifier:
             if identifier not in cls.__nodes:
@@ -878,41 +832,30 @@ class Pool:
 
     @classmethod
     async def fetch_tracks(cls, query: str, /, *, node: Node | None = None) -> list[Playable] | Playlist:
-        """Search for a list of :class:`~wavelink.Playable` or a :class:`~wavelink.Playlist`, with the given query.
+        """指定したクエリで :class:`~wavelink.Playable` または :class:`~wavelink.Playlist` を検索するクラスメソッド
 
         Parameters
         ----------
         query: str
-            The query to search tracks for. If this is not a URL based search you should provide the appropriate search
-            prefix, e.g. "ytsearch:Rick Roll"
+            検索クエリ。URLでない場合は "ytsearch:曲名" など適切なプレフィックスを付与
         node: :class:`~wavelink.Node` | None
-            An optional :class:`~wavelink.Node` to use when fetching tracks. Defaults to ``None``, which selects the
-            most appropriate :class:`~wavelink.Node` automatically.
+            検索に使用する :class:`~wavelink.Node`（省略時は自動選択）
 
         Returns
         -------
         list[Playable] | Playlist
-            A list of :class:`~wavelink.Playable` or a :class:`~wavelink.Playlist`
-            based on your search ``query``. Could be an empty list, if no tracks were found.
+            検索結果の :class:`~wavelink.Playable` のリスト、または :class:`~wavelink.Playlist`。該当なしの場合は空リスト
 
         Raises
         ------
         LavalinkLoadException
-            Exception raised when Lavalink fails to load results based on your query.
-
+            クエリに基づくLavalinkのロード失敗時に発生
 
         .. versionchanged:: 3.0.0
-
-            This method was previously known as both ``.get_tracks`` and ``.get_playlist``. This method now searches
-            for both :class:`~wavelink.Playable` and :class:`~wavelink.Playlist` and returns the appropriate type,
-            or an empty list if no results were found.
-
-            This method no longer accepts the ``cls`` parameter.
-
-
+            以前は ``.get_tracks`` および ``.get_playlist`` という名称だったが統合。検索結果に応じて型が変わるようになった
+            ``cls`` パラメータは廃止
         .. versionadded:: 3.4.0
-
-            Added the ``node`` Keyword-Only argument.
+            ``node`` キーワード専用引数を追加
         """
 
         # TODO: Documentation Extension for `.. positional-only::` marker.

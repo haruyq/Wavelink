@@ -61,23 +61,21 @@ T_a: TypeAlias = list[Playable] | Playlist
 
 
 class Player(discord.VoiceProtocol):
-    """The Player is a :class:`discord.VoiceProtocol` used to connect your :class:`discord.Client` to a
-    :class:`discord.VoiceChannel`.
+    """Playerは :class:`discord.VoiceProtocol` を継承し、:class:`discord.Client` を :class:`discord.VoiceChannel` に接続するためのクラス
 
-    The player controls the music elements of the bot including playing tracks, the queue, connecting etc.
-    See Also: The various methods available.
+    プレイヤーはBotの音楽再生要素（トラック再生、キュー管理、接続など）を制御する
+    詳細は各種メソッドを参照
 
     .. note::
 
-        Since the Player is a :class:`discord.VoiceProtocol`, it is attached to the various ``voice_client`` attributes
-        in discord.py, including ``guild.voice_client``, ``ctx.voice_client`` and ``interaction.voice_client``.
+        Playerは :class:`discord.VoiceProtocol` であるため、discord.pyの ``voice_client`` 属性（``guild.voice_client``、``ctx.voice_client``、``interaction.voice_client`` など）にアタッチされる
 
     Attributes
     ----------
     queue: :class:`~wavelink.Queue`
-        The queue associated with this player.
+        このプレイヤーに紐づくキュー
     auto_queue: :class:`~wavelink.Queue`
-        The auto_queue associated with this player. This queue holds tracks that are recommended by the AutoPlay feature.
+        このプレイヤーに紐づく自動キュー。AutoPlay機能で推奨されたトラックが格納される
     """
 
     channel: VocalGuildChannel
@@ -420,9 +418,9 @@ class Player(discord.VoiceProtocol):
 
     @property
     def state(self) -> PlayerBasicState:
-        """Property returning a dict of the current basic state of the player.
+        """現在のプレイヤーの基本状態をdictで返すプロパティ
 
-        This property includes the ``voice_state`` received via Discord.
+        このプロパティにはDiscordから受信した ``voice_state`` も含まれる
 
         Returns
         -------
@@ -442,31 +440,24 @@ class Player(discord.VoiceProtocol):
         return data
 
     async def switch_node(self, new_node: wavelink.Node, /) -> None:
-        """Method which attempts to switch the current node of the player.
+        """プレイヤーの現在のノードを切り替えるメソッド
 
-        This method initiates a live switch, and all player state will be moved from the current node to the provided
-        node.
+        このメソッドはライブスイッチを行い、全てのプレイヤー状態を現在のノードから指定ノードへ移動する
 
         .. warning::
-
-            Caution should be used when using this method. If this method fails, your player might be left in a stale
-            state. Consider handling cases where the player is unable to connect to the new node. To avoid stale state
-            in both wavelink and discord.py, it is recommended to disconnect the player when a RuntimeError occurs.
+            このメソッドの使用には注意が必要。失敗時はプレイヤーが不整合な状態になる可能性があるため、接続失敗時はRuntimeErrorをハンドリングし、必要に応じてプレイヤーを切断することを推奨
 
         Parameters
         ----------
         new_node: :class:`wavelink.Node`
-            A positional only argument of a :class:`wavelink.Node`, which is the new node the player will attempt to
-            switch to. This must not be the same as the current node.
+            新たに切り替える :class:`wavelink.Node`（現在のノードと同一であってはならない）
 
         Raises
         ------
         InvalidNodeException
-            The provided node was identical to the players current node.
+            指定ノードが現在のノードと同一の場合に発生
         RuntimeError
-            The player was unable to connect properly to the new node. At this point your player might be in a stale
-            state. Consider trying another node, or :meth:`disconnect` the player.
-
+            新ノードへの接続に失敗した場合に発生。この時点でプレイヤーは不整合な状態の可能性があるため、他ノードへの再接続や :meth:`disconnect` の検討を推奨
 
         .. versionadded:: 3.5.0
         """
@@ -503,33 +494,25 @@ class Player(discord.VoiceProtocol):
 
     @property
     def inactive_channel_tokens(self) -> int | None:
-        """A settable property which returns the token limit as an ``int`` of the amount of tracks to play before firing
-        the :func:`on_wavelink_inactive_player` event when a channel is inactive.
+        """チャンネルが非アクティブ時に :func:`on_wavelink_inactive_player` イベントを発火するまでに再生するトラック数の上限（トークン数）を返すプロパティ
 
-        This property could return ``None`` if the check has been disabled.
+        このプロパティが ``None`` の場合はチェックが無効
 
-        A channel is considered inactive when no real members (Members other than bots) are in the connected voice
-        channel. On each consecutive track played without a real member in the channel, this token bucket will reduce
-        by ``1``. After hitting ``0``, the :func:`on_wavelink_inactive_player` event will be fired and the token bucket
-        will reset to the set value. The default value for this property is ``3``.
+        実メンバー（Bot以外）がボイスチャンネルにいない場合、トラック再生ごとにこのトークンが1減少し、0になるとイベントが発火しトークンがリセットされる。デフォルトは3
 
-        This property can be set with any valid ``int`` or ``None``. If this property is set to ``<= 0`` or ``None``,
-        the check will be disabled.
+        このプロパティは有効な ``int`` または ``None`` で設定可能。0以下またはNoneでチェック無効
 
-        Setting this property to ``1`` will fire the :func:`on_wavelink_inactive_player` event at the end of every track
-        if no real members are in the channel and you have not disconnected the player.
+        1に設定すると、実メンバーがいない場合はトラック終了ごとにイベントが発火
 
-        If this check successfully fires the :func:`on_wavelink_inactive_player` event, it will cancel any waiting
-        :attr:`inactive_timeout` checks until a new track is played.
+        このチェックでイベントが発火した場合、:attr:`inactive_timeout` のカウントダウンは新たなトラック再生までキャンセルされる
 
-        The default for every player can be set on :class:`~wavelink.Node`.
+        全プレイヤーのデフォルト値は :class:`~wavelink.Node` で設定可能
 
         - See: :class:`~wavelink.Node`
         - See: :func:`on_wavelink_inactive_player`
 
         .. warning::
-
-            Setting this property will reset the bucket.
+            このプロパティを設定するとトークンがリセットされる
 
         .. versionadded:: 3.4.0
         """
@@ -546,28 +529,23 @@ class Player(discord.VoiceProtocol):
 
     @property
     def inactive_timeout(self) -> int | None:
-        """A property which returns the time as an ``int`` of seconds to wait before this player dispatches the
-        :func:`on_wavelink_inactive_player` event.
+        """このプレイヤーが :func:`on_wavelink_inactive_player` イベントを発火するまで待機する秒数（int）を返すプロパティ
 
-        This property could return ``None`` if no time has been set.
+        このプロパティが ``None`` の場合はタイムアウト未設定
 
-        An inactive player is a player that has not been playing anything for the specified amount of seconds.
+        非アクティブプレイヤーとは、指定秒数何も再生していないプレイヤーを指す
 
-        - Pausing the player while a song is playing will not activate this countdown.
-        - The countdown starts when a track ends and cancels when a track starts.
-        - The countdown will not trigger until a song is played for the first time or this property is reset.
-        - The default countdown for all players is set on :class:`~wavelink.Node`.
+        - 曲再生中に一時停止してもカウントダウンは開始されない
+        - トラック終了時にカウントダウン開始、トラック開始時にキャンセル
+        - 初回再生またはこのプロパティをリセットするまでカウントダウンは発火しない
+        - 全プレイヤーのデフォルト値は :class:`~wavelink.Node` で設定
 
-        This property can be set with a valid ``int`` of seconds to wait before dispatching the
-        :func:`on_wavelink_inactive_player` event or ``None`` to remove the timeout.
-
+        このプロパティは有効な ``int`` で秒数を設定、または ``None`` でタイムアウト解除
 
         .. warning::
+            0以下に設定すると ``None`` と同等
 
-            Setting this to a value of ``0`` or below is the equivalent of setting this property to ``None``.
-
-
-        When this property is set, the timeout will reset, and all previously waiting countdowns are cancelled.
+        設定時はタイムアウトがリセットされ、既存のカウントダウンは全てキャンセルされる
 
         - See: :class:`~wavelink.Node`
         - See: :func:`on_wavelink_inactive_player`
@@ -595,14 +573,14 @@ class Player(discord.VoiceProtocol):
 
     @property
     def autoplay(self) -> AutoPlayMode:
-        """A property which returns the :class:`wavelink.AutoPlayMode` the player is currently in.
+        """現在のプレイヤーの :class:`wavelink.AutoPlayMode` を返すプロパティ
 
-        This property can be set with any :class:`wavelink.AutoPlayMode` enum value.
+        このプロパティは :class:`wavelink.AutoPlayMode` のenum値で設定・取得可能
 
 
         .. versionchanged:: 3.0.0
 
-            This property now accepts and returns a :class:`wavelink.AutoPlayMode` enum value.
+            このプロパティは :class:`wavelink.AutoPlayMode` のenum値を受け付け・返すようになった
         """
         return self._autoplay
 
@@ -615,103 +593,101 @@ class Player(discord.VoiceProtocol):
 
     @property
     def node(self) -> Node:
-        """The :class:`Player`'s currently selected :class:`Node`.
+        """この :class:`Player` に現在割り当てられている :class:`Node` を返すプロパティ
 
 
         .. versionchanged:: 3.0.0
 
-            This property was previously known as ``current_node``.
+            以前は ``current_node`` という名称だった
         """
         return self._node
 
     @property
     def guild(self) -> discord.Guild | None:
-        """Returns the :class:`Player`'s associated :class:`discord.Guild`.
+        """この :class:`Player` に紐づく :class:`discord.Guild` を返す
 
-        Could be None if this :class:`Player` has not been connected.
+        未接続の場合はNone
         """
         return self._guild
 
     @property
     def connected(self) -> bool:
-        """Returns a bool indicating if the player is currently connected to a voice channel.
+        """プレイヤーが現在ボイスチャンネルに接続中かどうかをboolで返すプロパティ
 
         .. versionchanged:: 3.0.0
 
-            This property was previously known as ``is_connected``.
+            以前は ``is_connected`` という名称だった
         """
         return self.channel and self._connected
 
     @property
     def current(self) -> Playable | None:
-        """Returns the currently playing :class:`~wavelink.Playable` or None if no track is playing."""
+        """現在再生中の :class:`~wavelink.Playable` を返す。再生中でなければNone
+        """
         return self._current
 
     @property
     def volume(self) -> int:
-        """Returns an int representing the currently set volume, as a percentage.
+        """現在設定されている音量（パーセンテージ）をintで返すプロパティ
 
-        See: :meth:`set_volume` for setting the volume.
+        設定は :meth:`set_volume` を参照
         """
         return self._volume
 
     @property
     def filters(self) -> Filters:
-        """Property which returns the :class:`~wavelink.Filters` currently assigned to the Player.
+        """現在このプレイヤーに割り当てられている :class:`~wavelink.Filters` を返すプロパティ
 
-        See: :meth:`~wavelink.Player.set_filters` for setting the players filters.
+        設定は :meth:`~wavelink.Player.set_filters` を参照
 
         .. versionchanged:: 3.0.0
 
-            This property was previously known as ``filter``.
+            以前は ``filter`` という名称だった
         """
         return self._filters
 
     @property
     def paused(self) -> bool:
-        """Returns the paused status of the player. A currently paused player will return ``True``.
+        """プレイヤーが一時停止中かどうかを返すプロパティ。一時停止中は ``True``
 
-        See: :meth:`pause` and :meth:`play` for setting the paused status.
+        設定は :meth:`pause` および :meth:`play` を参照
         """
         return self._paused
 
     @property
     def ping(self) -> int:
-        """Returns the ping in milliseconds as int between your connected Lavalink Node and Discord (Players Channel).
+        """接続中のLavalinkノードとDiscord（プレイヤーチャンネル）間のping（ミリ秒）をintで返すプロパティ
 
-        Returns ``-1`` if no player update event has been received or the player is not connected.
+        プレイヤーアップデートイベント未受信または未接続時は ``-1`` を返す
         """
         return self._ping
 
     @property
     def playing(self) -> bool:
-        """Returns whether the :class:`~Player` is currently playing a track and is connected.
+        """この :class:`~Player` が現在トラックを再生中かつ接続中かどうかを返すプロパティ
 
-        Due to relying on validation from Lavalink, this property may in some cases return ``True`` directly after
-        skipping/stopping a track, although this is not the case when disconnecting the player.
+        Lavalinkからの検証に依存するため、トラックスキップ・停止直後に ``True`` となる場合があるが、切断時はこの限りでない
 
-        This property will return ``True`` in cases where the player is paused *and* has a track loaded.
+        一時停止中かつトラックがロードされている場合も ``True`` を返す
 
         .. versionchanged:: 3.0.0
 
-            This property used to be known as the `is_playing()` method.
+            以前は `is_playing()` メソッドだった
         """
         return self._connected and self._current is not None
 
     @property
     def position(self) -> int:
-        """Returns the position of the currently playing :class:`~wavelink.Playable` in milliseconds.
+        """現在再生中の :class:`~wavelink.Playable` の再生位置（ミリ秒）を返すプロパティ
 
-        This property relies on information updates from Lavalink.
+        このプロパティはLavalinkからの情報更新に依存
 
-        In cases there is no :class:`~wavelink.Playable` loaded or the player is not connected,
-        this property will return ``0``.
-
-        This property will return ``0`` if no update has been received from Lavalink.
+        :class:`~wavelink.Playable` 未ロードまたは未接続時は ``0`` を返す
+        Lavalinkからのアップデート未受信時も ``0`` を返す
 
         .. versionchanged:: 3.0.0
 
-            This property now uses a monotonic clock.
+            このプロパティはモノトニッククロックを使用するようになった
         """
         if self.current is None or not self.playing:
             return 0

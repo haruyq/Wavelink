@@ -101,15 +101,15 @@ class _BaseFilter(Generic[FT]):
 
 
 class Equalizer:
-    """Equalizer Filter Class.
+    """イコライザーフィルタークラス
 
-    There are 15 bands ``0`` to ``14`` that can be changed.
-    Each band has a ``gain`` which is the multiplier for the given band. ``gain`` defaults to ``0``.
+    0から14までの15バンドを調整できる
+    各バンドには "gain"（増幅率）があり、デフォルトは0
 
-    Valid ``gain`` values range from ``-0.25`` to ``1.0``, where ``-0.25`` means the given band is completely muted,
-    and ``0.25`` means it will be doubled.
+    有効な "gain" の値は-0.25から1.0まで
+    -0.25はそのバンドが完全にミュート、0.25は2倍になるイメージ
 
-    Modifying the ``gain`` could also change the volume of the output.
+    "gain" を調整すると出力音量も変わることがある
     """
 
     def __init__(self, payload: list[EqualizerPayload] | None = None) -> None:
@@ -133,16 +133,15 @@ class Equalizer:
         return default
 
     def set(self, **options: Unpack[EqualizerOptions]) -> Self:
-        """Set the bands of the Equalizer class.
+        """イコライザーのバンドをまとめて設定する
 
-        Accepts a keyword argument ``bands`` which is a ``list`` of ``dict`` containing the keys ``band`` and ``gain``.
+        キーワード引数 "bands" で、"band" と "gain" を持つ辞書のリストを渡す
 
-        ``band`` can be an ``int`` beteween ``0`` and ``14``.
-        ``gain`` can be a float between ``-0.25`` and ``1.0``, where ``-0.25`` means the given band is completely muted,
-        and ``0.25`` means it will be doubled.
+        "band" は0から14のint、"gain" は-0.25から1.0のfloat
+        -0.25でそのバンドがミュート、0.25で2倍になる
 
-        Using this method changes **all** bands, resetting any bands not provided.
-        To change specific bands, consider accessing :attr:`~wavelink.Equalizer.payload` first.
+        このメソッドを使うと全バンドがリセットされ、指定しなかったバンドも初期化される
+        特定のバンドだけ変えたい場合は :attr:`~wavelink.Equalizer.payload` を直接編集するのがおすすめ
         """
         default: dict[int, EqualizerPayload] = {n: {"band": n, "gain": 0.0} for n in range(15)}
         payload: list[EqualizerPayload] | None = options.get("bands", None)
@@ -155,15 +154,16 @@ class Equalizer:
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: dict[int, EqualizerPayload] = {n: {"band": n, "gain": 0.0} for n in range(15)}
         return self
 
     @property
     def payload(self) -> dict[int, EqualizerPayload]:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -175,30 +175,30 @@ class Equalizer:
 
 
 class Karaoke(_BaseFilter[KaraokePayload]):
-    """Karaoke Filter class.
+    """カラオケフィルタークラス
 
-    Uses equalization to eliminate part of a band, usually targeting vocals.
+    イコライザーで特定のバンド（主にボーカル）を除去する効果
     """
 
     def __init__(self, payload: KaraokePayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[KaraokeOptions]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         level: Optional[float]
-            The level ``0`` to ``1.0`` where ``0.0`` is no effect and ``1.0`` is full effect.
+            効果の強さ。0.0で無効、1.0で最大
         mono_level: Optional[float]
-            The mono level ``0`` to ``1.0`` where ``0.0`` is no effect and ``1.0`` is full effect.
+            モノラル成分の強さ。0.0で無効、1.0で最大
         filter_band: Optional[float]
-            The filter band in Hz.
+            除去するバンドの周波数（Hz）
         filter_width: Optional[float]
-            The filter width.
+            バンド幅
         """
         self._payload: KaraokePayload = {
             "level": options.get("level", self._payload.get("level")),
@@ -210,15 +210,16 @@ class Karaoke(_BaseFilter[KaraokePayload]):
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: KaraokePayload = {}
         return self
 
     @property
     def payload(self) -> KaraokePayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -230,43 +231,44 @@ class Karaoke(_BaseFilter[KaraokePayload]):
 
 
 class Timescale(_BaseFilter[TimescalePayload]):
-    """Timescale Filter class.
+    """タイムスケールフィルタークラス
 
-    Changes the speed, pitch, and rate.
+    再生速度・ピッチ・レートを変更できる
     """
 
     def __init__(self, payload: TimescalePayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[TimescalePayload]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         speed: Optional[float]
-            The playback speed.
+            再生速度
         pitch: Optional[float]
-            The pitch.
+            ピッチ
         rate: Optional[float]
-            The rate.
+            レート
         """
         self._payload.update(options)
         self._remove_none()
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: TimescalePayload = {}
         return self
 
     @property
     def payload(self) -> TimescalePayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -278,42 +280,43 @@ class Timescale(_BaseFilter[TimescalePayload]):
 
 
 class Tremolo(_BaseFilter[TremoloPayload]):
-    """The Tremolo Filter class.
+    """トレモロフィルタークラス
 
-    Uses amplification to create a shuddering effect, where the volume quickly oscillates.
-    Demo: https://en.wikipedia.org/wiki/File:Fuse_Electronics_Tremolo_MK-III_Quick_Demo.ogv
+    音量を周期的に揺らして震えるような効果を出す
+    例: https://en.wikipedia.org/wiki/File:Fuse_Electronics_Tremolo_MK-III_Quick_Demo.ogv
     """
 
     def __init__(self, payload: TremoloPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[TremoloPayload]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         frequency: Optional[float]
-            The frequency.
+            周波数
         depth: Optional[float]
-            The tremolo depth.
+            揺れの深さ
         """
         self._payload.update(options)
         self._remove_none()
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: TremoloPayload = {}
         return self
 
     @property
     def payload(self) -> TremoloPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -325,41 +328,42 @@ class Tremolo(_BaseFilter[TremoloPayload]):
 
 
 class Vibrato(_BaseFilter[VibratoPayload]):
-    """The Vibrato Filter class.
+    """ビブラートフィルタークラス
 
-    Similar to tremolo. While tremolo oscillates the volume, vibrato oscillates the pitch.
+    トレモロが音量を揺らすのに対し、ビブラートはピッチを揺らす
     """
 
     def __init__(self, payload: VibratoPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[VibratoPayload]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         frequency: Optional[float]
-            The frequency.
+            周波数
         depth: Optional[float]
-            The vibrato depth.
+            揺れの深さ
         """
         self._payload.update(options)
         self._remove_none()
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: VibratoPayload = {}
         return self
 
     @property
     def payload(self) -> VibratoPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -371,40 +375,41 @@ class Vibrato(_BaseFilter[VibratoPayload]):
 
 
 class Rotation(_BaseFilter[RotationPayload]):
-    """The Rotation Filter class.
+    """ローテーションフィルタークラス
 
-    Rotates the sound around the stereo channels/user headphones (aka Audio Panning).
-    It can produce an effect similar to https://youtu.be/QB9EB8mTKcc (without the reverb).
+    ステレオ左右やヘッドホンで音が回転するような効果（パンニング）
+    例: https://youtu.be/QB9EB8mTKcc（リバーブなし）
     """
 
     def __init__(self, payload: RotationPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[RotationOptions]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         rotation_hz: Optional[float]
-            The frequency of the audio rotating around the listener in Hz. ``0.2`` is similar to the example video.
+            音が回転する周波数（Hz）。0.2で上記動画のような効果
         """
         self._payload: RotationPayload = {"rotationHz": options.get("rotation_hz", self._payload.get("rotationHz"))}
         self._remove_none()
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: RotationPayload = {}
         return self
 
     @property
     def payload(self) -> RotationPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -416,38 +421,38 @@ class Rotation(_BaseFilter[RotationPayload]):
 
 
 class Distortion(_BaseFilter[DistortionPayload]):
-    """The Distortion Filter class.
+    """ディストーションフィルタークラス
 
-    According to Lavalink "It can generate some pretty unique audio effects."
+    Lavalink曰く「かなりユニークな音響効果を生み出せる」
     """
 
     def __init__(self, payload: DistortionPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[DistortionOptions]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         sin_offset: Optional[float]
-            The sin offset.
+            サインオフセット
         sin_scale: Optional[float]
-            The sin scale.
+            サインスケール
         cos_offset: Optional[float]
-            The cos offset.
+            コサインオフセット
         cos_scale: Optional[float]
-            The cos scale.
+            コサインスケール
         tan_offset: Optional[float]
-            The tan offset.
+            タンジェントオフセット
         tan_scale: Optional[float]
-            The tan scale.
+            タンジェントスケール
         offset: Optional[float]
-            The offset.
+            オフセット
         scale: Optional[float]
-            The scale.
+            スケール
         """
         self._payload: DistortionPayload = {
             "sinOffset": options.get("sin_offset", self._payload.get("sinOffset")),
@@ -463,15 +468,16 @@ class Distortion(_BaseFilter[DistortionPayload]):
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: DistortionPayload = {}
         return self
 
     @property
     def payload(self) -> DistortionPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -483,33 +489,33 @@ class Distortion(_BaseFilter[DistortionPayload]):
 
 
 class ChannelMix(_BaseFilter[ChannelMixPayload]):
-    """The ChannelMix Filter class.
+    """チャンネルミックスフィルタークラス
 
-    Mixes both channels (left and right), with a configurable factor on how much each channel affects the other.
-    With the defaults, both channels are kept independent of each other.
+    左右チャンネルを混ぜる。各チャンネルがどれだけ影響し合うかを調整できる
+    デフォルトでは左右独立
 
-    Setting all factors to ``0.5`` means both channels get the same audio.
+    全て0.5にすると両チャンネルが同じ音になる
     """
 
     def __init__(self, payload: ChannelMixPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[ChannelMixOptions]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         left_to_left: Optional[float]
-            The left to left channel mix factor. Between ``0.0`` and ``1.0``.
+            左→左のミックス係数（0.0～1.0）
         left_to_right: Optional[float]
-            The left to right channel mix factor. Between ``0.0`` and ``1.0``.
+            左→右のミックス係数（0.0～1.0）
         right_to_left: Optional[float]
-            The right to left channel mix factor. Between ``0.0`` and ``1.0``.
+            右→左のミックス係数（0.0～1.0）
         right_to_right: Optional[float]
-            The right to right channel mix factor. Between ``0.0`` and ``1.0``.
+            右→右のミックス係数（0.0～1.0）
         """
         self._payload: ChannelMixPayload = {
             "leftToLeft": options.get("left_to_left", self._payload.get("leftToLeft")),
@@ -521,15 +527,16 @@ class ChannelMix(_BaseFilter[ChannelMixPayload]):
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: ChannelMixPayload = {}
         return self
 
     @property
     def payload(self) -> ChannelMixPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -541,40 +548,41 @@ class ChannelMix(_BaseFilter[ChannelMixPayload]):
 
 
 class LowPass(_BaseFilter[LowPassPayload]):
-    """The LowPass Filter class.
+    """ローパスフィルタークラス
 
-    Higher frequencies get suppressed, while lower frequencies pass through this filter, thus the name low pass.
-    Any smoothing values equal to or less than ``1.0`` will disable the filter.
+    高い周波数を抑え、低い周波数だけ通す（ローパス）
+    smoothingが1.0以下だとフィルターは無効
     """
 
     def __init__(self, payload: LowPassPayload) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: Unpack[LowPassPayload]) -> Self:
-        """Set the properties of the this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs.
-        This method does not override existing settings if they are not provided.
+        キーワード引数で設定可能
+        指定しなかった値は上書きされない
 
         Parameters
         ----------
         smoothing: Optional[float]
-            The smoothing factor.
+            スムージング係数
         """
         self._payload.update(options)
         self._remove_none()
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: LowPassPayload = {}
         return self
 
     @property
     def payload(self) -> LowPassPayload:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -586,31 +594,30 @@ class LowPass(_BaseFilter[LowPassPayload]):
 
 
 class PluginFilters(_BaseFilter[dict[str, Any]]):
-    """The PluginFilters class.
+    """プラグインフィルタークラス
 
-    This class handles setting filters on plugins that support setting filter values.
-    See the documentation of the Lavalink Plugin for more information on the values that can be set.
+    プラグインでフィルター値を設定する場合に使う
+    詳細はLavalinkプラグインのドキュメント参照
 
-    This class takes in a ``dict[str, Any]`` usually in the form of:
+    通常は ``dict[str, Any]`` 形式で渡す:
 
     .. code:: python3
 
         {"pluginName": {"filterKey": "filterValue"}, ...}
 
-
     .. warning::
 
-        Do NOT include the ``"pluginFilters"`` top level key when setting your values for this class.
+        このクラスで値を設定する際は ``"pluginFilters"`` というトップレベルキーは含めないこと
     """
 
     def __init__(self, payload: dict[str, Any]) -> None:
         super().__init__(payload=payload)
 
     def set(self, **options: dict[str, Any]) -> Self:
-        """Set the properties of this filter.
+        """このフィルターのプロパティを設定する
 
-        This method accepts keyword argument pairs OR you can alternatively unpack a dictionary.
-        See the documentation of the Lavalink Plugin for more information on the values that can be set.
+        キーワード引数または辞書のアンパックで設定可能
+        詳細はLavalinkプラグインのドキュメント参照
 
         Examples
         --------
@@ -620,7 +627,7 @@ class PluginFilters(_BaseFilter[dict[str, Any]]):
             plugin_filters: PluginFilters = PluginFilters()
             plugin_filters.set(pluginName={"filterKey": "filterValue", ...})
 
-            # OR...
+            # または...
 
             plugin_filters.set(**{"pluginName": {"filterKey": "filterValue", ...}})
         """
@@ -629,15 +636,16 @@ class PluginFilters(_BaseFilter[dict[str, Any]]):
         return self
 
     def reset(self) -> Self:
-        """Reset this filter to its defaults."""
+        """このフィルターを初期状態にリセットする
+        """
         self._payload: dict[str, Any] = {}
         return self
 
     @property
     def payload(self) -> dict[str, Any]:
-        """The raw payload associated with this filter.
+        """このフィルターの生のペイロードを返す
 
-        This property returns a copy.
+        戻り値はコピー
         """
         return self._payload.copy()
 
@@ -649,23 +657,19 @@ class PluginFilters(_BaseFilter[dict[str, Any]]):
 
 
 class Filters:
-    """The wavelink Filters class.
+    """wavelinkのフィルター管理クラス
 
-    This class contains the information associated with each of Lavalinks filter objects, as Python classes.
-    Each filter can be ``set`` or ``reset`` individually.
+    各LavalinkフィルターをPythonクラスとしてまとめて管理できる
+    各フィルターは個別に ``set`` や ``reset`` 可能
 
-    Using ``set`` on an individual filter only updates any ``new`` values you pass.
-    Using ``reset`` on an individual filter, resets it's payload, and can be used before ``set`` when you want a clean
-    state for that filter.
+    個別の ``set`` は指定した値だけ更新、``reset`` はそのフィルターを初期化
+    :meth:`~wavelink.Filters.reset` で全フィルターを一括リセットできる
 
-    See: :meth:`~wavelink.Filters.reset` to reset **every** individual filter.
+    新しい :class:`~wavelink.Player` には自動で適用される
 
-    This class is already applied an instantiated on all new :class:`~wavelink.Player`.
+    :meth:`~wavelink.Player.set_filters` でプレイヤーに適用、:attr:`~wavelink.Player.filters` で取得
 
-    See: :meth:`~wavelink.Player.set_filters` for information on applying this class to your :class:`~wavelink.Player`.
-    See: :attr:`~wavelink.Player.filters` for retrieving the applied filters.
-
-    To retrieve the ``payload`` for this Filters class, you can call an instance of this class.
+    このFiltersクラスの ``payload`` を取得したい場合はインスタンスを呼び出す
 
     Examples
     --------
@@ -674,19 +678,16 @@ class Filters:
 
         import wavelink
 
-        # Create a brand new Filters and apply it...
-        # You can use player.set_filters() for an easier way to reset.
+        # 新しいFiltersを作って適用
+        # player.set_filters() を使うと簡単にリセットできる
         filters: wavelink.Filters = wavelink.Filters()
         await player.set_filters(filters)
 
-
-        # Retrieve the payload of any Filters instance...
+        # Filtersインスタンスのpayloadを取得
         filters: wavelink.Filters = player.filters
         print(filters())
 
-
-        # Set some filters...
-        # You can set and reset individual filters at the same time...
+        # フィルターを個別に設定・リセット
         filters: wavelink.Filters = player.filters
         filters.timescale.set(pitch=1.2, speed=1.1, rate=1)
         filters.rotation.set(rotation_hz=0.2)
@@ -694,22 +695,19 @@ class Filters:
 
         await player.set_filters(filters)
 
-
-        # Reset a filter...
+        # フィルターをリセット
         filters: wavelink.Filters = player.filters
         filters.timescale.reset()
 
         await player.set_filters(filters)
 
-
-        # Reset all filters...
+        # 全フィルターをリセット
         filters: wavelink.Filters = player.filters
         filters.reset()
 
         await player.set_filters(filters)
 
-
-        # Reset and apply filters easier method...
+        # 一括リセット・適用の簡易メソッド
         await player.set_filters()
     """
 

@@ -15,63 +15,51 @@ __all__ = ("Queue",)
 
 
 class Queue:
-    """The default custom wavelink Queue designed specifically for :class:`wavelink.Player`.
+    """デフォルトのカスタムwavelinkキュー。:class:`wavelink.Player` 用に設計されたクラス
 
     .. note::
-
-        :class:`~wavelink.Player` implements this queue by default.
-        You can access it via :attr:`wavelink.Player.queue`.
+        :class:`~wavelink.Player` はデフォルトでこのキューを実装している
+        :attr:`wavelink.Player.queue` からアクセス可能
 
     .. container:: operations
 
         .. describe:: str(queue)
-
-            A string representation of this queue.
+            このキューの文字列表現
 
         .. describe:: repr(queue)
-
-            The official string representation of this queue.
+            このキューの公式な文字列表現
 
         .. describe:: if queue
-
-            Bool check whether this queue has items or not.
+            キューにアイテムが存在するかどうかの真偽値判定
 
         .. describe:: queue(track)
-
-            Put a track in the queue.
+            トラックをキューに追加
 
         .. describe:: len(queue)
-
-            The amount of tracks in the queue.
+            キュー内のトラック数
 
         .. describe:: queue[1]
-
-            Peek at an item in the queue. Does not change the queue.
+            キュー内のアイテムを参照（キューの状態は変化しない）
 
         .. describe:: for item in queue
-
-            Iterate over the queue.
+            キューをイテレート
 
         .. describe:: if item in queue
-
-            Check whether a specific track is in the queue.
+            特定のトラックがキューに含まれるか判定
 
         .. describe:: queue[1] = track
-
-            Set a track in the queue at a specific index.
+            指定インデックスのトラックを設定
 
         .. describe:: del queue[1]
-
-            Delete a track from the queue at a specific index.
+            指定インデックスのトラックを削除
 
         .. describe:: reversed(queue)
-
-            Return a reversed iterator of the queue.
+            キューの逆順イテレータを返す
 
     Attributes
     ----------
     history: :class:`wavelink.Queue`
-        A queue of tracks that have been added to history. Tracks are added to history when they are played.
+        再生済みトラックの履歴キュー。トラックが再生されると履歴に追加される
     """
 
     def __init__(self, *, history: bool = True) -> None:
@@ -86,10 +74,9 @@ class Queue:
 
     @property
     def mode(self) -> QueueMode:
-        """Property which returns a :class:`~wavelink.QueueMode` indicating which mode the
-        :class:`~wavelink.Queue` is in.
+        """:class:`~wavelink.QueueMode` で現在のキューのモードを返すプロパティ
 
-        This property can be set with any :class:`~wavelink.QueueMode`.
+        このプロパティは :class:`~wavelink.QueueMode` で設定可能
 
 
         .. versionadded:: 3.0.0
@@ -106,12 +93,12 @@ class Queue:
 
     @property
     def count(self) -> int:
-        """The queue member count.
+        """キュー内のトラック数を返すプロパティ
 
         Returns
         -------
         int
-            The amount of tracks in the queue.
+            キュー内のトラック数
 
 
         .. versionadded:: 3.2.0
@@ -121,12 +108,12 @@ class Queue:
 
     @property
     def is_empty(self) -> bool:
-        """Whether the queue has no members.
+        """キューが空かどうかを返すプロパティ
 
         Returns
         -------
         bool
-            Whether the queue is empty.
+            キューが空ならTrue
 
 
         .. versionadded:: 3.2.0
@@ -197,31 +184,26 @@ class Queue:
         return True
 
     def get(self) -> Playable:
-        """Retrieve a track from the left side of the queue. E.g. the first.
+        """キューの先頭（左端）からトラックを取得するメソッド
 
-        This method does not block.
+        このメソッドはブロックしない
 
         .. warning::
-
-            Due to the way the queue loop works, this method will return the same track if the queue is in loop mode.
-            You can use :meth:`wavelink.Player.skip` with ``force=True`` to skip the current track.
-
-            Do **NOT** use this method to remove tracks from the queue, use either:
-
+            ループモード時は同じトラックを返す。スキップには :meth:`wavelink.Player.skip`（force=True）を推奨
+            このメソッドでキューからトラックを削除しないこと。削除には以下を利用:
             - ``del queue[index]``
             - :meth:`wavelink.Queue.remove`
             - :meth:`wavelink.Queue.delete`
 
-
         Returns
         -------
         :class:`wavelink.Playable`
-            The track retrieved from the queue.
+            取得したトラック
 
         Raises
         ------
         QueueEmpty
-            The queue was empty when retrieving a track.
+            キューが空の場合に発生
         """
 
         if self.mode is QueueMode.loop and self._loaded:
@@ -242,14 +224,11 @@ class Queue:
         return track
 
     def get_at(self, index: int, /) -> Playable:
-        """Retrieve a track from the queue at a given index.
+        """指定インデックスのトラックを取得するメソッド
 
         .. warning::
-
-            Due to the way the queue loop works, this method will load the retrieved track for looping.
-
-            Do **NOT** use this method to remove tracks from the queue, use either:
-
+            ループモードの都合上、取得したトラックがループ対象としてロードされる
+            このメソッドでキューからトラックを削除しないこと。削除には以下を利用:
             - ``del queue[index]``
             - :meth:`wavelink.Queue.remove`
             - :meth:`wavelink.Queue.delete`
@@ -257,19 +236,19 @@ class Queue:
         Parameters
         ----------
         index: int
-            The index of the track to get.
+            取得したいトラックのインデックス
 
         Returns
         -------
         :class:`wavelink.Playable`
-            The track retrieved from the queue.
+            取得したトラック
 
         Raises
         ------
         QueueEmpty
-            The queue was empty when retrieving a track.
+            キューが空の場合に発生
         IndexError
-            The index was out of range for the current queue.
+            インデックスが範囲外の場合に発生
 
 
         .. versionadded:: 3.2.0
@@ -284,24 +263,22 @@ class Queue:
         return track
 
     def put_at(self, index: int, value: Playable, /) -> None:
-        """Put a track into the queue at a given index.
+        """指定インデックスにトラックを挿入するメソッド
 
         .. note::
-
-            This method doesn't replace the track at the index but rather inserts one there, similar to a list.
+            指定インデックスのトラックを置換せず、リストのinsertのように挿入する
 
         Parameters
         ----------
         index: int
-            The index to put the track at.
+            挿入位置のインデックス
         value: :class:`wavelink.Playable`
-            The track to put.
+            挿入するトラック
 
         Raises
         ------
         TypeError
-            The track was not a :class:`wavelink.Playable`.
-
+            valueが :class:`wavelink.Playable` でない場合に発生
 
         .. versionadded:: 3.2.0
         """
@@ -310,15 +287,12 @@ class Queue:
         self._wakeup_next()
 
     async def get_wait(self) -> Playable:
-        """This method returns the first :class:`wavelink.Playable` if one is present or
-        waits indefinitely until one is.
-
-        This method is asynchronous.
+        """キューにトラックがあれば先頭を返し、なければ追加されるまで非同期で待機するメソッド
 
         Returns
         -------
         :class:`wavelink.Playable`
-            The track retrieved from the queue.
+            取得したトラック
         """
 
         while not self:
@@ -345,22 +319,21 @@ class Queue:
         return self.get()
 
     def put(self, item: list[Playable] | Playable | Playlist, /, *, atomic: bool = True) -> int:
-        """Put an item into the end of the queue.
+        """キューの末尾にアイテムを追加するメソッド
 
-        Accepts a :class:`wavelink.Playable`, :class:`wavelink.Playlist` or list[:class:`wavelink.Playble`].
+        :class:`wavelink.Playable`、:class:`wavelink.Playlist`、list[:class:`wavelink.Playable`] を受け付ける
 
         Parameters
         ----------
-        item: :class:`wavelink.Playable` | :class:`wavelink.Playlist` | list[:class:`wavelink.Playble`]
-            The item to enter into the queue.
+        item: :class:`wavelink.Playable` | :class:`wavelink.Playlist` | list[:class:`wavelink.Playable`]
+            追加するアイテム
         atomic: bool
-            Whether the items should be inserted atomically. If set to ``True`` this method won't enter any tracks if
-            it encounters an error. Defaults to ``True``.
+            アイテムをアトミックに追加するかどうか。Trueの場合、途中でエラーが発生したら何も追加しない。デフォルトはTrue
 
         Returns
         -------
         int
-            The number of tracks added to the queue.
+            追加されたトラック数
         """
 
         added = 0
@@ -390,26 +363,24 @@ class Queue:
         return added
 
     async def put_wait(self, item: list[Playable] | Playable | Playlist, /, *, atomic: bool = True) -> int:
-        """Put an item or items into the end of the queue asynchronously.
+        """キューの末尾にアイテムを非同期で追加するメソッド
 
-        Accepts a :class:`wavelink.Playable` or :class:`wavelink.Playlist` or list[:class:`wavelink.Playable`].
+        :class:`wavelink.Playable`、:class:`wavelink.Playlist`、list[:class:`wavelink.Playable`] を受け付ける
 
         .. note::
-
-            This method implements a lock to preserve insert order.
+            挿入順を保証するためロックを実装
 
         Parameters
         ----------
         item: :class:`wavelink.Playable` | :class:`wavelink.Playlist` | list[:class:`wavelink.Playable`]
-            The item or items to enter into the queue.
+            追加するアイテム
         atomic: bool
-            Whether the items should be inserted atomically. If set to ``True`` this method won't enter any tracks if
-            it encounters an error. Defaults to ``True``.
+            アイテムをアトミックに追加するかどうか。Trueの場合、途中でエラーが発生したら何も追加しない。デフォルトはTrue
 
         Returns
         -------
         int
-            The number of tracks added to the queue.
+            追加されたトラック数
         """
 
         added: int = 0
@@ -443,52 +414,47 @@ class Queue:
         return added
 
     def delete(self, index: int, /) -> None:
-        """Method to delete an item in the queue by index.
+        """指定インデックスのアイテムをキューから削除するメソッド
 
         Raises
         ------
         IndexError
-            No track exists at this index.
+            指定インデックスにトラックが存在しない場合に発生
 
         Examples
         --------
-
         .. code:: python3
-
-            # Deletes the track at index 1 (The second track).
+            # インデックス1（2番目）のトラックを削除
             queue.delete(1)
 
-
         .. versionchanged:: 3.2.0
-
-            The method is no longer a coroutine.
+            このメソッドはコルーチンではなくなった
         """
 
         del self._items[index]
 
     def peek(self, index: int = 0, /) -> Playable:
-        """Method to peek at an item in the queue by index.
+        """指定インデックスのアイテムを参照するメソッド（キューの状態は変化しない）
 
         .. note::
-
-            This does not change the queue or remove the item.
+            このメソッドはキューを変更せず、アイテムも削除しない
 
         Parameters
         ----------
         index: int
-            The index to peek at. Defaults to ``0`` which is the next item in the queue.
+            参照したいインデックス。デフォルトは0（次に再生されるアイテム）
 
         Returns
         -------
         :class:`wavelink.Playable`
-            The track at the given index.
+            指定インデックスのトラック
 
         Raises
         ------
         QueueEmpty
-            There are no items currently in this queue.
+            キューが空の場合に発生
         IndexError
-            No track exists at the given index.
+            指定インデックスにトラックが存在しない場合に発生
 
 
         .. versionadded:: 3.2.0
@@ -499,14 +465,14 @@ class Queue:
         return self[index]
 
     def swap(self, first: int, second: int, /) -> None:
-        """Swap two items in the queue by index.
+        """指定インデックス同士のアイテムを入れ替えるメソッド
 
         Parameters
         ----------
         first: int
-            The first index to swap with.
+            入れ替え元のインデックス
         second: int
-            The second index to swap with.
+            入れ替え先のインデックス
 
         Returns
         -------
@@ -515,54 +481,48 @@ class Queue:
         Raises
         ------
         IndexError
-            No track exists at the given index.
+            指定インデックスにトラックが存在しない場合に発生
 
         Example
         -------
-
         .. code:: python3
-
-            # Swap the first and second tracks in the queue.
+            # 1番目と2番目のトラックを入れ替え
             queue.swap(0, 1)
-
 
         .. versionadded:: 3.2.0
         """
         self[first], self[second] = self[second], self[first]
 
     def index(self, item: Playable, /) -> int:
-        """Return the index of the first occurence of a :class:`wavelink.Playable` in the queue.
+        """指定した :class:`wavelink.Playable` の最初の出現インデックスを返すメソッド
 
         Parameters
         ----------
         item: :class:`wavelink.Playable`
-            The item to search the index for.
+            検索対象のアイテム
 
         Returns
         -------
         int
-            The index of the item in the queue.
+            アイテムのインデックス
 
         Raises
         ------
         ValueError
-            The item was not found in the queue.
-
+            アイテムがキューに存在しない場合に発生
 
         .. versionadded:: 3.2.0
         """
         return self._items.index(item)
 
     def shuffle(self) -> None:
-        """Shuffles the queue in place. This does **not** return anything.
+        """キューをインプレースでシャッフルするメソッド（戻り値なし）
 
         Example
         -------
-
         .. code:: python3
-
             player.queue.shuffle()
-            # Your queue has now been shuffled...
+            # キューがシャッフルされる
 
         Returns
         -------
@@ -572,18 +532,16 @@ class Queue:
         random.shuffle(self._items)
 
     def clear(self) -> None:
-        """Remove all items from the queue.
+        """キュー内の全アイテムを削除するメソッド
 
         .. note::
-
-            This does not reset the queue or clear history. Use this method on queue.history to clear history.
+            このメソッドはキュー自体や履歴はリセットしない。履歴を消すには queue.history に対してこのメソッドを使う
 
         Example
         -------
         .. code:: python3
-
             player.queue.clear()
-            # Your queue is now empty...
+            # キューが空になる
 
         Returns
         -------
@@ -593,12 +551,12 @@ class Queue:
         self._items.clear()
 
     def copy(self) -> Queue:
-        """Create a shallow copy of the queue.
+        """キューのシャローコピーを作成するメソッド
 
         Returns
         -------
         :class:`wavelink.Queue`
-            A shallow copy of the queue.
+            キューのシャローコピー
         """
 
         copy_queue = Queue(history=self.history is not None)
@@ -606,11 +564,10 @@ class Queue:
         return copy_queue
 
     def reset(self) -> None:
-        """Reset the queue to its default state. This will clear the queue and history.
+        """キューをデフォルト状態にリセットするメソッド。キューと履歴をクリア
 
         .. note::
-
-            This will cancel any waiting futures on the queue. E.g. :meth:`wavelink.Queue.get_wait`.
+            このメソッドはキューの待機中Futureも全てキャンセルする（例: :meth:`wavelink.Queue.get_wait`）
 
         Returns
         -------
@@ -629,33 +586,30 @@ class Queue:
         self._loaded = None
 
     def remove(self, item: Playable, /, count: int | None = 1) -> int:
-        """Remove a specific track from the queue up to a given count or all instances.
+        """指定したトラックを最大count回または全てキューから削除するメソッド
 
         .. note::
-
-            This method starts from the left hand side of the queue E.g. the beginning.
+            このメソッドはキューの左端（先頭）から探索
 
         .. warning::
-
-            Setting count to ``<= 0`` is equivalent to setting it to ``1``.
+            countを ``<= 0`` にすると ``1`` と同等
 
         Parameters
         ----------
         item: :class:`wavelink.Playable`
-            The item to remove from the queue.
+            削除対象のアイテム
         count: int
-            The amount of times to remove the item from the queue. Defaults to ``1``.
-            If set to ``None`` this will remove all instances of the item.
+            削除回数。デフォルトは1。Noneで全て削除
 
         Returns
         -------
         int
-            The amount of times the item was removed from the queue.
+            削除された回数
 
         Raises
         ------
         ValueError
-            The item was not found in the queue.
+            アイテムがキューに存在しない場合に発生
 
 
         .. versionadded:: 3.2.0
@@ -674,24 +628,22 @@ class Queue:
 
     @property
     def loaded(self) -> Playable | None:
-        """The currently loaded track that will repeat when the queue is set to :attr:`wavelink.QueueMode.loop`.
+        """キューが :attr:`wavelink.QueueMode.loop` の場合にリピートされる現在ロード中のトラック
 
-        This track will be retrieved when using :meth:`wavelink.Queue.get` if the queue is in loop mode.
-        You can unload the track by setting this property to ``None`` or by using :meth:`wavelink.Player.skip` with
-        ``force=True``.
+        ループモード時は :meth:`wavelink.Queue.get` でこのトラックが返される
+        このプロパティを ``None`` にするか :meth:`wavelink.Player.skip`（force=True）でアンロード可能
 
-        Setting this property to a new :class:`wavelink.Playable` will replace the currently loaded track, but will not
-        add it to the queue; or history until the track is played.
+        新しい :class:`wavelink.Playable` を設定すると現在のロードトラックが置き換わるが、再生されるまでキューや履歴には追加されない
 
         Returns
         -------
         :class:`wavelink.Playable` | None
-            The currently loaded track or ``None`` if there is no track ready to repeat.
+            現在リピート対象のトラック。なければNone
 
         Raises
         ------
         TypeError
-            The track was not a :class:`wavelink.Playable` or ``None``.
+            :class:`wavelink.Playable` または ``None`` 以外を設定した場合に発生
 
 
         .. versionadded:: 3.2.0

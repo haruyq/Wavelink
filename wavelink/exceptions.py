@@ -22,21 +22,19 @@ __all__ = (
 
 
 class WavelinkException(Exception):
-    """Base wavelink Exception class.
-
-    All wavelink exceptions derive from this exception.
+    """wavelinkの全ての例外の基底クラス
     """
 
 
 class NodeException(WavelinkException):
-    """Error raised when an Unknown or Generic error occurs on a Node.
+    """ノードで不明または一般的なエラーが発生したときに使う例外
 
-    This exception may be raised when an error occurs reaching your Node.
+    ノードへの接続時にエラーが起きた場合などに発生
 
     Attributes
     ----------
     status: int | None
-        The status code received when making a request. Could be None.
+        リクエスト時に受信したステータスコード。Noneの場合もある
     """
 
     def __init__(self, msg: str | None = None, status: int | None = None) -> None:
@@ -46,32 +44,31 @@ class NodeException(WavelinkException):
 
 
 class InvalidClientException(WavelinkException):
-    """Exception raised when an invalid :class:`discord.Client`
-    is provided while connecting a :class:`wavelink.Node`.
+    """無効な :class:`discord.Client` を :class:`wavelink.Node` に接続しようとしたときに使う例外
     """
 
 
 class AuthorizationFailedException(WavelinkException):
-    """Exception raised when Lavalink fails to authenticate a :class:`~wavelink.Node`, with the provided password."""
+    """Lavalinkが指定されたパスワードで :class:`~wavelink.Node` の認証に失敗したときに使う例外
+    """
 
 
 class InvalidNodeException(WavelinkException):
-    """Exception raised when a :class:`Node` is tried to be retrieved from the
-    :class:`Pool` without existing, or the ``Pool`` is empty.
+    """:class:`Pool` から存在しない :class:`Node` を取得しようとした場合や ``Pool`` が空のときに使う例外
 
-    This exception is also raised when providing an invalid node to :meth:`~wavelink.Player.switch_node`.
+    :meth:`~wavelink.Player.switch_node` に無効なノードを指定した場合にも発生
     """
 
 
 class LavalinkException(WavelinkException):
-    """Exception raised when Lavalink returns an invalid response.
+    """Lavalinkが無効なレスポンスを返した場合に発生する例外
 
     Attributes
     ----------
     status: int
-        The response status code.
+        レスポンスのステータスコード
     reason: str | None
-        The response reason. Could be ``None`` if no reason was provided.
+        レスポンスの理由。理由が提供されていない場合は ``None`` 
     """
 
     def __init__(self, msg: str | None = None, /, *, data: ErrorResponse) -> None:
@@ -82,22 +79,22 @@ class LavalinkException(WavelinkException):
         self.path: str = data["path"]
 
         if not msg:
-            msg = f"Failed to fulfill request to Lavalink: status={self.status}, reason={self.error}, path={self.path}"
+            msg = f"Lavalinkへのリクエストに失敗しました: status={self.status}, reason={self.error}, path={self.path}"
 
         super().__init__(msg)
 
 
 class LavalinkLoadException(WavelinkException):
-    """Exception raised when an error occurred loading tracks via Lavalink.
+    """Lavalinkでトラックの読み込み中にエラーが発生した場合に発生する例外
 
     Attributes
     ----------
     error: str
-        The error message from Lavalink.
+        Lavalinkからのエラーメッセージ
     severity: str
-        The severity of this error sent via Lavalink.
+        Lavalinkから送信されたこのエラーの重大度
     cause: str
-        The cause of this error sent via Lavalink.
+        Lavalinkから送信されたこのエラーの原因
     """
 
     def __init__(self, msg: str | None = None, /, *, data: LoadedErrorPayload) -> None:
@@ -106,20 +103,18 @@ class LavalinkLoadException(WavelinkException):
         self.cause: str = data["cause"]
 
         if not msg:
-            msg = f"Failed to Load Tracks: error={self.error}, severity={self.severity}, cause={self.cause}"
+            msg = f"トラックの読み込みに失敗しました: error={self.error}, severity={self.severity}, cause={self.cause}"
 
         super().__init__(msg)
 
 
 class InvalidChannelStateException(WavelinkException):
-    """Exception raised when a :class:`~wavelink.Player` tries to connect to an invalid channel or
-    has invalid permissions to use this channel.
-    """
+    """:class:`~wavelink.Player` が無効なチャンネルに接続しようとした場合、またはそのチャンネルを使用する権限がない場合に発生する例外"""
 
 
 class ChannelTimeoutException(WavelinkException):
-    """Exception raised when connecting to a voice channel times out."""
+    """ボイスチャンネルへの接続がタイムアウトした場合に発生する例外"""
 
 
 class QueueEmpty(WavelinkException):
-    """Exception raised when you try to retrieve from an empty queue."""
+    """空のキューから取得しようとした場合に発生する例外"""

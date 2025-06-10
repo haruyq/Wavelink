@@ -9,16 +9,16 @@ if TYPE_CHECKING:
 
 
 class Backoff:
-    """An implementation of an Exponential Backoff.
+    """指数バックオフの実装。
 
     Parameters
     ----------
     base: int
-        The base time to multiply exponentially. Defaults to 1.
+        指数的に乗算される基準時間。デフォルトは1。
     maximum_time: float
-        The maximum wait time. Defaults to 30.0
+        最大待機時間。デフォルトは30.0。
     maximum_tries: Optional[int]
-        The amount of times to backoff before resetting. Defaults to 5. If set to None, backoff will run indefinitely.
+        リセットするまでのバックオフ回数。デフォルトは5。Noneに設定すると無制限にバックオフします。
     """
 
     def __init__(self, *, base: int = 1, maximum_time: float = 30.0, maximum_tries: int | None = 5) -> None:

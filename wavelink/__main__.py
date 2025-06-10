@@ -7,7 +7,7 @@ import wavelink
 
 
 parser = argparse.ArgumentParser(prog="wavelink")
-parser.add_argument("--version", action="store_true", help="Get version and debug information for wavelink.")
+parser.add_argument("--version", action="store_true", help="Wavelinkのバージョンを取得します。")
 
 
 args = parser.parse_args()
