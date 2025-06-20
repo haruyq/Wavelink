@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/Wavelink
+      url: https://pypi.org/p/Wavelink-fix
     permissions:
       id-token: write
 
