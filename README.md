@@ -11,7 +11,7 @@
 ![ロゴ](https://raw.githubusercontent.com/PythonistaGuild/Wavelink/master/logo.png)
 
 ![Python Version](https://img.shields.io/pypi/pyversions/Wavelink)
-[![PyPI - Version](https://img.shields.io/pypi/v/Wavelink)](https://pypi.org/project/wavelink/)
+[![PyPI - Version](https://img.shields.io/pypi/v/Wavelink)](https://pypi.org/project/Wavelink-fix/)
 [![Github License](https://img.shields.io/github/license/PythonistaGuild/Wavelink)](LICENSE)
 [![Lavalink Version](https://img.shields.io/badge/Lavalink-v4.0%2B-blue?color=%23FB7713)](https://lavalink.dev)
 ![Lavalink Plugin](https://img.shields.io/badge/Lavalink_Plugins-Native_Support-blue?color=%2373D673)
