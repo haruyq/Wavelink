@@ -1,6 +1,6 @@
 > [!IMPORTANT]
 > このForkは、現在メンテナンスされていない[Wavelink](https://github.com/PythonistaGuild/Wavelink)を私なりに修正、機能の追加を行うためのものです。  
-> Pull requestはお気軽にどうぞ。
+> Pull requestやIssuesはお気軽にどうぞ。
 
 > [!WARNING]
 > 継続的なアップデートを保証するものではありませんので、その点はご注意ください。  
