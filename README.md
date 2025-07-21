@@ -35,12 +35,6 @@ Wavelinkは直感的で使いやすい完全非同期APIを備えています。
 - 状態を持つオブジェクト指向設計。
 - 完全な型アノテーションとPyright strict typing準拠。
 
-
-## ドキュメント(Wavelink 3.5.0まで)
-
-[公式ドキュメント](https://wavelink.dev/en/latest)
-
-
 ## Lavalink
 
 Wavelink **3**は**Lavalink v4**が必要です。
