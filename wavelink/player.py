@@ -234,7 +234,7 @@ class Player(discord.VoiceProtocol):
             return
 
         if self._error_count >= 3:
-            logger.warning(
+            logger.debug(
                 "AutoPlay was unable to continue as you have received too many consecutive errors."
                 "Please check the error log on Lavalink."
             )

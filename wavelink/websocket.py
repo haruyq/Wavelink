@@ -220,7 +220,7 @@ class Websocket:
                             player=player, track=track, exception=exception
                         )
 
-                        LOGGER_TRACK.error(
+                        LOGGER_TRACK.debug(
                             "A Lavalink TrackException was received on %r for player %r: %s, caused by: %s, with severity: %s",
                             self.node,
                             player,
