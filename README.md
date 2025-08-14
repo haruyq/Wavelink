@@ -1,6 +1,6 @@
 > [!IMPORTANT]
 > このForkは、現在メンテナンスされていない[Wavelink](https://github.com/PythonistaGuild/Wavelink)を私なりに修正、機能の追加を行うためのものです。  
-> Pull requestはお気軽にどうぞ。
+> Pull requestやIssuesはお気軽にどうぞ。
 
 > [!WARNING]
 > 継続的なアップデートを保証するものではありませんので、その点はご注意ください。  
@@ -11,7 +11,7 @@
 ![ロゴ](https://raw.githubusercontent.com/PythonistaGuild/Wavelink/master/logo.png)
 
 ![Python Version](https://img.shields.io/pypi/pyversions/Wavelink)
-[![PyPI - Version](https://img.shields.io/pypi/v/Wavelink)](https://pypi.org/project/wavelink/)
+[![PyPI - Version](https://img.shields.io/pypi/v/Wavelink)](https://pypi.org/project/Wavelink-fix/)
 [![Github License](https://img.shields.io/github/license/PythonistaGuild/Wavelink)](LICENSE)
 [![Lavalink Version](https://img.shields.io/badge/Lavalink-v4.0%2B-blue?color=%23FB7713)](https://lavalink.dev)
 ![Lavalink Plugin](https://img.shields.io/badge/Lavalink_Plugins-Native_Support-blue?color=%2373D673)
@@ -34,12 +34,6 @@ Wavelinkは直感的で使いやすい完全非同期APIを備えています。
 - 連続再生のための高度な自動再生とトラック推薦。
 - 状態を持つオブジェクト指向設計。
 - 完全な型アノテーションとPyright strict typing準拠。
-
-
-## ドキュメント(Wavelink 3.5.0まで)
-
-[公式ドキュメント](https://wavelink.dev/en/latest)
-
 
 ## Lavalink
 
