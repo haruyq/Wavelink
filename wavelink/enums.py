@@ -41,42 +41,43 @@ class TrackSource(enum.Enum):
 
 
 class DiscordVoiceCloseType(enum.Enum):
-    """いろいろなDiscord VoiceCloseTypeを表すEnum
+    """
+    Discord Voice Close Event Codes
 
     Attributes
     ----------
     CLOSE_NORMAL
-        1000
+        1000: Not Discord but standard websocket
     UNKNOWN_OPCODE
-        4001
+        4001: Unknown opcode - You sent an invalid opcode.
     FAILED_DECODE_PAYLOAD
-        4002
+        4002: Failed to decode payload - You sent an invalid payload in your identifying to the Gateway.
     NOT_AUTHENTICATED
-        4003
+        4003: Not authenticated - You sent a payload before identifying with the Gateway.
     AUTHENTICATION_FAILED
-        4004
+        4004: Authentication failed - The token you sent in your identify payload is incorrect.
     ALREADY_AUTHENTICATED
-        4005
-    SESSION_INVALID
-        4006
+        4005: Already authenticated - You sent more than one identify payload.
+    SESSION_NO_LONGER_VALID
+        4006: Session no longer valid - Your session is no longer valid.
     SESSION_TIMEOUT
-        4009
+        4009: Session timeout - Your session has timed out.
     SERVER_NOT_FOUND
-        4011
+        4011: Server not found - We can't find the server you're trying to connect to.
     UNKNOWN_PROTOCOL
-        4012
+        4012: Unknown protocol - We didn't recognize the protocol you sent.
     DISCONNECTED
-        4014
+        4014: Disconnected - Disconnect individual client (you were kicked, the main gateway session was dropped, etc.). Should not reconnect.
     VOICE_SERVER_CRASHED
-        4015
+        4015: Voice server crashed - The server crashed. Try resuming voice connection.
     UNKNOWN_ENCRYPTION_MODE
-        4016
+        4016: Unknown encryption mode - We didn't recognize your encryption.
     BAD_REQUEST
-        4020
+        4020: Bad request - You sent a malformed request.
     RATE_LIMITED
-        4021
+        4021: Disconnected: Rate Limited - Disconnect due to rate limit exceeded. Should not reconnect.
     CALL_TERMINATED
-        4022
+        4022: Disconnected: Call Terminated - Disconnect all clients due to call terminated. Should not reconnect.
     """
 
     CLOSE_NORMAL = 1000  # Not Discord but standard websocket
@@ -85,7 +86,7 @@ class DiscordVoiceCloseType(enum.Enum):
     NOT_AUTHENTICATED = 4003
     AUTHENTICATION_FAILED = 4004
     ALREADY_AUTHENTICATED = 4005
-    SESSION_INVALID = 4006
+    SESSION_NO_LONGER_VALID = 4006
     SESSION_TIMEOUT = 4009
     SERVER_NOT_FOUND = 4011
     UNKNOWN_PROTOCOL = 4012
