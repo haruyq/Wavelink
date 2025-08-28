@@ -858,7 +858,6 @@ class Pool:
             ``node`` キーワード専用引数を追加
         """
 
-        # TODO: Documentation Extension for `.. positional-only::` marker.
         encoded_query: str = urllib.parse.quote(query)
 
         if cls.__cache is not None:
