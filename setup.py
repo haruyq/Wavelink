@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='wavelink',
-    version='3.5.1',
+    version='3.5.2b',
     description='discord.py用のLavalink API Wrapper',
     author='PythonistaGuild, EvieePy, haruyq',
     author_email='haruwaiku@gmail.com',
