@@ -268,10 +268,9 @@ class Playable:
             .. code:: python
                 track: wavelink.Playable = wavelink.Playable.search("QUERY")
                 track.extras = {"requester_id": 1234567890}
-                # 後で...
-                print(track.extras.requester_id)
-                # または
-                print(dict(track.extras)["requester_id"])
+
+                requester_id = dict(track.extras)["requester_id"])
+                print(requester_id)
 
         .. versionadded:: 3.1.0
         """
@@ -293,12 +292,8 @@ class Playable:
         Examples
         --------
             .. code:: python3
-                # 例...
                 old_data = track.raw_data
-
-                # 後で...
                 track: wavelink.Playable = wavelink.Playable(old_data)
-
 
         .. versionadded:: 3.2.0
         """
@@ -308,7 +303,7 @@ class Playable:
     async def search(
         cls, query: str, /, *, source: TrackSource | str | None = TrackSource.YouTubeMusic, node: Node | None = None
     ) -> Search:
-        """指定クエリで :class:`~wavelink.Playable` または :class:`~wavelink.Playlist` を検索するクラスメソッド
+        """指定クエリで :class:`~wavelink.Playable` もしくは :class:`~wavelink.Playlist` を検索するクラスメソッド
 
         .. note::
             このメソッドは :meth:`wavelink.Pool.fetch_tracks` と異なり、URLでない場合は適切な検索プレフィックスを自動付与する（source引数で制御可能）
