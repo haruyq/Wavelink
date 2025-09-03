@@ -159,6 +159,34 @@ class Playable:
         return self._length
 
     @property
+    def length_sec(self) -> float:
+        """このトラックの長さ（秒）をintで返すプロパティ"""
+        return self._length / 1000.0
+    
+    @property
+    def length_min(self) -> float:
+        """このトラックの長さ（分）をintで返すプロパティ"""
+        return self._length / (1000.0 * 60)
+    
+    @property
+    def length_hour(self) -> float:
+        """このトラックの長さ（時間）をintで返すプロパティ"""
+        return self._length / (1000.0 * 60 * 60)
+    
+    @property
+    def length_formatted(self) -> str:
+        """このトラックの長さ（HH:MM:SS形式）をstrで返すプロパティ"""
+        total_seconds = int(self._length / 1000)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes:02d}:{seconds:02d}"
+
+    @property
     def is_stream(self) -> bool:
         """このトラックがストリームかどうかを返すプロパティ"""
         return self._is_stream
