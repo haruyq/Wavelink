@@ -27,6 +27,7 @@ __all__ = (
     "FiltersOptions",
     "Filters",
     "Equalizer",
+    "EqualizerPresets",
     "Karaoke",
     "Timescale",
     "Tremolo",
@@ -99,6 +100,75 @@ class _BaseFilter(Generic[FT]):
         # Passing None makes it easier for the user to remove a field...
         self._payload = {k: v for k, v in self._payload.items() if v is not None}  # type: ignore
 
+class EqualizerPresets:
+    """イコライザーのプリセットクラス。
+    
+    提供されるプリセット
+        * FLAT
+        * BASS_BOOST
+        * BASS_REDUCE
+        * VOICE_BOOST
+        * ROCK
+        * POP
+        * CLASSICAL
+        * DEEP
+    """
+    @staticmethod
+    def _eq_payload_from_gains(gains: list[float]) -> list[EqualizerPayload]:
+        if len(gains) < 15:
+            gains = gains + [0.0] * (15 - len(gains))
+        elif len(gains) > 15:
+            gains = gains[:15]
+
+        def _clamp(v: float) -> float:
+            return max(-0.25, min(1.0, float(v)))
+
+        return [{"band": i, "gain": _clamp(g)} for i, g in enumerate(gains)]
+
+    FLAT: list[EqualizerPayload] = _eq_payload_from_gains([0.0] * 15)
+    BASS_BOOST: list[EqualizerPayload] = _eq_payload_from_gains([
+        0.22, 0.20, 0.16, 0.12, 0.08, 0.04, 0.00, -0.02, 0.00, 0.04, 0.08, 0.10, 0.12, 0.12, 0.10
+    ])
+    BASS_REDUCE: list[EqualizerPayload] = _eq_payload_from_gains([
+        -0.18, -0.16, -0.12, -0.08, -0.04, -0.02, 0.00, 0.02, 0.04, 0.04, 0.02, 0.00, -0.02, -0.04, -0.06
+    ])
+    VOICE_BOOST: list[EqualizerPayload] = _eq_payload_from_gains([
+        -0.10, -0.10, -0.06, 0.08, 0.14, 0.20, 0.20, 0.16, 0.10, 0.06, 0.02, -0.04, -0.08, -0.10, -0.10
+    ])
+    ROCK: list[EqualizerPayload] = _eq_payload_from_gains([
+        0.20, 0.16, 0.12, 0.06, -0.04, -0.08, -0.04, 0.04, 0.10, 0.14, 0.18, 0.18, 0.14, 0.12, 0.10
+    ])
+    POP: list[EqualizerPayload] = _eq_payload_from_gains([
+        0.12, 0.10, 0.06, -0.02, -0.04, -0.04, 0.00, 0.04, 0.08, 0.12, 0.14, 0.10, 0.08, 0.06, 0.04
+    ])
+    CLASSICAL: list[EqualizerPayload] = _eq_payload_from_gains([
+        -0.10, -0.08, -0.06, -0.02, 0.02, 0.06, 0.10, 0.10, 0.08, 0.06, 0.04, 0.02, 0.02, 0.04, 0.06
+    ])
+    DEEP: list[EqualizerPayload] = _eq_payload_from_gains([
+        0.25, 0.22, 0.20, 0.16, 0.12, 0.08, 0.04, 0.00, -0.06, -0.10, -0.14, -0.18, -0.20, -0.22, -0.25
+    ])
+    
+    PRESETS: dict[str, list[EqualizerPayload]] = {
+        "FLAT": FLAT,
+        "BASS_BOOST": BASS_BOOST,
+        "BASS_REDUCE": BASS_REDUCE,
+        "VOICE_BOOST": VOICE_BOOST,
+        "ROCK": ROCK,
+        "POP": POP,
+        "CLASSICAL": CLASSICAL,
+        "DEEP": DEEP,
+    }
+
+    @classmethod
+    def get(cls, name: str) -> list[EqualizerPayload]:
+        """プリセット名からペイロードを取得する。
+
+        返り値はコピーなので、そのまま :class:`~wavelink.Equalizer` に渡して安全に編集できます。
+        """
+        key = name.strip().upper()
+        if key not in cls.PRESETS:
+            raise KeyError(f"Unknown equalizer preset: {name}")
+        return [{"band": p["band"], "gain": p["gain"]} for p in cls.PRESETS[key]]
 
 class Equalizer:
     """イコライザーフィルタークラス
