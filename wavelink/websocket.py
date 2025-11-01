@@ -166,83 +166,84 @@ class Websocket:
                 if not message.data:
                     logger.debug("Received an empty message from Lavalink websocket. Disregarding.")
                     continue
-
+                
                 try:
+                    # Super Rarely TypeError occurs here.
+                    # i think it's from aiohttp or json lib internally. I don't care.
                     data: WebsocketOP = message.json()
                     logger.debug("Received websocket message from %r: %s", self.node, data)
+                except TypeError as e:
+                    logger.debug(f"Super Rarely TypeError occurred while parsing websocket message: {e}", exc_info=True)
+                    continue
 
-                    if data["op"] == "playerUpdate":
-                        playerup: Player | None = self.get_player(data["guildId"])
-                        state: PlayerState = data["state"]
-                        updatepayload: PlayerUpdateEventPayload = PlayerUpdateEventPayload(player=playerup, state=state)
-                        self.dispatch("player_update", updatepayload)
-                        if playerup:
-                            asyncio.create_task(playerup._update_event(updatepayload))
+                if data["op"] == "playerUpdate":
+                    playerup: Player | None = self.get_player(data["guildId"])
+                    state: PlayerState = data["state"]
+                    updatepayload: PlayerUpdateEventPayload = PlayerUpdateEventPayload(player=playerup, state=state)
+                    self.dispatch("player_update", updatepayload)
+                    if playerup:
+                        asyncio.create_task(playerup._update_event(updatepayload))
 
-                    elif data["op"] == "stats":
-                        statspayload: StatsEventPayload = StatsEventPayload(data=data)
-                        self.node._total_player_count = statspayload.players
-                        self.dispatch("stats_update", statspayload)
+                elif data["op"] == "stats":
+                    statspayload: StatsEventPayload = StatsEventPayload(data=data)
+                    self.node._total_player_count = statspayload.players
+                    self.dispatch("stats_update", statspayload)
 
-                    elif data["op"] == "event":
-                        player: Player | None = self.get_player(data["guildId"])
+                elif data["op"] == "event":
+                    player: Player | None = self.get_player(data["guildId"])
 
-                        if data["type"] == "TrackStartEvent":
-                            track: Playable = Playable(data["track"])
-                            startpayload: TrackStartEventPayload = TrackStartEventPayload(player=player, track=track)
-                            self.dispatch("track_start", startpayload)
-                            if player:
-                                asyncio.create_task(player._track_start(startpayload))
+                    if data["type"] == "TrackStartEvent":
+                        track: Playable = Playable(data["track"])
+                        startpayload: TrackStartEventPayload = TrackStartEventPayload(player=player, track=track)
+                        self.dispatch("track_start", startpayload)
+                        if player:
+                            asyncio.create_task(player._track_start(startpayload))
 
-                        elif data["type"] == "TrackEndEvent":
-                            track: Playable = Playable(data["track"])
-                            reason: str = data["reason"]
-                            if player and reason != "replaced":
-                                player._current = None
-                            endpayload: TrackEndEventPayload = TrackEndEventPayload(player=player, track=track, reason=reason)
-                            self.dispatch("track_end", endpayload)
-                            if player:
-                                asyncio.create_task(player._auto_play_event(endpayload))
+                    elif data["type"] == "TrackEndEvent":
+                        track: Playable = Playable(data["track"])
+                        reason: str = data["reason"]
+                        if player and reason != "replaced":
+                            player._current = None
+                        endpayload: TrackEndEventPayload = TrackEndEventPayload(player=player, track=track, reason=reason)
+                        self.dispatch("track_end", endpayload)
+                        if player:
+                            asyncio.create_task(player._auto_play_event(endpayload))
 
-                        elif data["type"] == "TrackExceptionEvent":
-                            track: Playable = Playable(data["track"])
-                            exception: TrackExceptionPayload = data["exception"]
-                            excpayload: TrackExceptionEventPayload = TrackExceptionEventPayload(
-                                player=player, track=track, exception=exception
-                            )
-                            LOGGER_TRACK.debug(
-                                "A Lavalink TrackException was received on %r for player %r: %s, caused by: %s, with severity: %s",
-                                self.node, player, exception.get("message", ""), exception["cause"], exception["severity"],
-                            )
-                            self.dispatch("track_exception", excpayload)
+                    elif data["type"] == "TrackExceptionEvent":
+                        track: Playable = Playable(data["track"])
+                        exception: TrackExceptionPayload = data["exception"]
+                        excpayload: TrackExceptionEventPayload = TrackExceptionEventPayload(
+                            player=player, track=track, exception=exception
+                        )
+                        LOGGER_TRACK.debug(
+                            "A Lavalink TrackException was received on %r for player %r: %s, caused by: %s, with severity: %s",
+                            self.node, player, exception.get("message", ""), exception["cause"], exception["severity"],
+                        )
+                        self.dispatch("track_exception", excpayload)
 
-                        elif data["type"] == "TrackStuckEvent":
-                            track: Playable = Playable(data["track"])
-                            threshold: int = data["thresholdMs"]
-                            stuckpayload: TrackStuckEventPayload = TrackStuckEventPayload(player=player, track=track, threshold=threshold)
-                            self.dispatch("track_stuck", stuckpayload)
+                    elif data["type"] == "TrackStuckEvent":
+                        track: Playable = Playable(data["track"])
+                        threshold: int = data["thresholdMs"]
+                        stuckpayload: TrackStuckEventPayload = TrackStuckEventPayload(player=player, track=track, threshold=threshold)
+                        self.dispatch("track_stuck", stuckpayload)
 
-                        elif data["type"] == "WebSocketClosedEvent":
-                            code: int = data["code"]
-                            reason: str = data["reason"]
-                            by_remote: bool = data["byRemote"]
-                            wcpayload: WebsocketClosedEventPayload = WebsocketClosedEventPayload(
-                                player=player, code=code, reason=reason, by_remote=by_remote
-                            )
-                            self.dispatch("websocket_closed", wcpayload)
-                            if player:
-                                asyncio.create_task(player._disconnected_wait(code, by_remote))
-
-                        else:
-                            other_payload: ExtraEventPayload = ExtraEventPayload(node=self.node, player=player, data=data)
-                            self.dispatch("extra_event", other_payload)
+                    elif data["type"] == "WebSocketClosedEvent":
+                        code: int = data["code"]
+                        reason: str = data["reason"]
+                        by_remote: bool = data["byRemote"]
+                        wcpayload: WebsocketClosedEventPayload = WebsocketClosedEventPayload(
+                            player=player, code=code, reason=reason, by_remote=by_remote
+                        )
+                        self.dispatch("websocket_closed", wcpayload)
+                        if player:
+                            asyncio.create_task(player._disconnected_wait(code, by_remote))
 
                     else:
-                        logger.debug("Received an unknown OP from Lavalink '%s'. Disregarding.", data["op"])
+                        other_payload: ExtraEventPayload = ExtraEventPayload(node=self.node, player=player, data=data)
+                        self.dispatch("extra_event", other_payload)
 
-                except ValueError as e:
-                    logger.warning(f"Received invalid data or unknown Close Code: {e!r}. Skipping this message.")
-                    continue
+                else:
+                    logger.debug("Received an unknown OP from Lavalink '%s'. Disregarding.", data["op"])
 
             except Exception as e:
                 logger.error(f"An error occurred while processing a keep_alive: {e}", exc_info=True)
