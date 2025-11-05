@@ -114,7 +114,48 @@ class EqualizerPresets:
         * DEEP
     """
     @staticmethod
-    def _eq_payload_from_gains(gains: list[float]) -> list[EqualizerPayload]:
+    def parse_str_gains(gains: str, expected_bands: int = 15) -> list[float]:
+        """イコライザーのゲイン値を文字列からパースする。
+
+        Args:
+            gains (str): ゲイン値の文字列
+            expected_bands (int, optional): 期待されるバンド数。デフォルトは15。
+
+        Raises:
+            ValueError: パースに失敗した場合
+            ValueError: 値が範囲外の場合
+            ValueError: 期待されるバンド数と異なる場合
+
+        Returns:
+            list[float]: パースされたゲイン値のリスト
+
+        Returns:
+            list[float]: パースされたゲイン値のリスト
+        """
+        s = gains.strip()
+        s = s.strip("[](){}")
+        for sep in ["，", "、", ";"]:
+            s = s.replace(sep, ",")
+        parts = [p.strip() for p in (s.split(",") if "," in s else s.split()) if p.strip()]
+
+        floats: list[float] = []
+        for p in parts:
+            p_norm = p.replace("＋", "+").replace("－", "-")
+            try:
+                val = float(p_norm)
+            except ValueError:
+                raise ValueError(f"Parse Failed")
+            if val < -0.25 or val > 1.0:
+                raise ValueError("Value Out of Range")
+            floats.append(val)
+
+        if len(floats) != expected_bands:
+            raise ValueError(f"Expected {expected_bands} values, but got {len(floats)}")
+
+        return floats
+    
+    @staticmethod
+    def _parse_gains(gains: list[float]) -> list[EqualizerPayload]:
         if len(gains) < 15:
             gains = gains + [0.0] * (15 - len(gains))
         elif len(gains) > 15:
@@ -125,26 +166,26 @@ class EqualizerPresets:
 
         return [{"band": i, "gain": _clamp(g)} for i, g in enumerate(gains)]
 
-    FLAT: list[EqualizerPayload] = _eq_payload_from_gains([0.0] * 15)
-    BASS_BOOST: list[EqualizerPayload] = _eq_payload_from_gains([
-        0.22, 0.20, 0.16, 0.12, 0.08, 0.04, 0.00, -0.02, 0.00, 0.04, 0.08, 0.10, 0.12, 0.12, 0.10
+    FLAT: list[EqualizerPayload] = _parse_gains([0.0] * 15)
+    BASS_BOOST: list[EqualizerPayload] = _parse_gains([
+        0.20, 0.18, 0.15, 0.12, 0.08, 0.04, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
     ])
-    BASS_REDUCE: list[EqualizerPayload] = _eq_payload_from_gains([
+    BASS_REDUCE: list[EqualizerPayload] = _parse_gains([
         -0.18, -0.16, -0.12, -0.08, -0.04, -0.02, 0.00, 0.02, 0.04, 0.04, 0.02, 0.00, -0.02, -0.04, -0.06
     ])
-    VOICE_BOOST: list[EqualizerPayload] = _eq_payload_from_gains([
+    VOICE_BOOST: list[EqualizerPayload] = _parse_gains([
         -0.10, -0.10, -0.06, 0.08, 0.14, 0.20, 0.20, 0.16, 0.10, 0.06, 0.02, -0.04, -0.08, -0.10, -0.10
     ])
-    ROCK: list[EqualizerPayload] = _eq_payload_from_gains([
+    ROCK: list[EqualizerPayload] = _parse_gains([
         0.20, 0.16, 0.12, 0.06, -0.04, -0.08, -0.04, 0.04, 0.10, 0.14, 0.18, 0.18, 0.14, 0.12, 0.10
     ])
-    POP: list[EqualizerPayload] = _eq_payload_from_gains([
+    POP: list[EqualizerPayload] = _parse_gains([
         0.12, 0.10, 0.06, -0.02, -0.04, -0.04, 0.00, 0.04, 0.08, 0.12, 0.14, 0.10, 0.08, 0.06, 0.04
     ])
-    CLASSICAL: list[EqualizerPayload] = _eq_payload_from_gains([
+    CLASSICAL: list[EqualizerPayload] = _parse_gains([
         -0.10, -0.08, -0.06, -0.02, 0.02, 0.06, 0.10, 0.10, 0.08, 0.06, 0.04, 0.02, 0.02, 0.04, 0.06
     ])
-    DEEP: list[EqualizerPayload] = _eq_payload_from_gains([
+    DEEP: list[EqualizerPayload] = _parse_gains([
         0.25, 0.22, 0.20, 0.16, 0.12, 0.08, 0.04, 0.00, -0.06, -0.10, -0.14, -0.18, -0.20, -0.22, -0.25
     ])
     
@@ -163,7 +204,7 @@ class EqualizerPresets:
     def get(cls, name: str) -> list[EqualizerPayload]:
         """プリセット名からペイロードを取得する。
 
-        返り値はコピーなので、そのまま :class:`~wavelink.Equalizer` に渡して安全に編集できます。
+        返り値はコピーなので、そのまま :class:`~wavelink.Equalizer` に渡して安全に編集できる。
         """
         key = name.strip().upper()
         if key not in cls.PRESETS:
