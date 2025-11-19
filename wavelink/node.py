@@ -519,6 +519,7 @@ class Node:
             try:
                 async with self._session.patch(url=uri, json=data, headers=self.headers) as resp:
                     if resp.status == 200:
+                        logger.debug("Successfully updated session on %r", self)
                         return await resp.json()
 
                     try:
