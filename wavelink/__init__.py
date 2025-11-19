@@ -2,7 +2,7 @@ __title__ = "WaveLink"
 __author__ = "PythonistaGuild, EvieePy, haruyq"
 __license__ = "MIT"
 __copyright__ = "Copyright 2019-Present (c) PythonistaGuild, EvieePy, haruyq"
-__version__ = "3.5.2b"
+__version__ = "3.5.2"
 
 from .enums import *
 from .exceptions import *
