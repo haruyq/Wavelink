@@ -6,6 +6,7 @@ import urllib.parse
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeAlias
 
 import aiohttp
+import asyncio
 from discord.utils import classproperty
 
 from . import __version__
@@ -509,22 +510,34 @@ class Node:
 
             raise LavalinkException(data=exc_data)
 
-    async def _update_session(self, *, data: UpdateSessionRequest) -> UpdateResponse:
+    async def _update_session(self, *, data: UpdateSessionRequest, retries: int = 5, delay: float = 0.5) -> UpdateResponse:
         uri: str = f"{self.uri}/v4/sessions/{self.session_id}"
 
-        async with self._session.patch(url=uri, json=data, headers=self.headers) as resp:
-            if resp.status == 200:
-                resp_data: UpdateResponse = await resp.json()
-                return resp_data
+        last_exception: Exception | None = None
 
-            else:
-                try:
-                    exc_data: ErrorResponse = await resp.json()
-                except Exception as e:
-                    logger.warning("An error occured making a request on %r: %s", self, e)
-                    raise NodeException(status=resp.status)
+        for attempt in range(1, retries + 1):
+            try:
+                async with self._session.patch(url=uri, json=data, headers=self.headers) as resp:
+                    if resp.status == 200:
+                        return await resp.json()
 
-                raise LavalinkException(data=exc_data)
+                    try:
+                        exc_data = await resp.json()
+                        raise LavalinkException(data=exc_data)
+                    except Exception as exc:
+                        raise NodeException(status=resp.status) from exc
+
+            except (aiohttp.ClientConnectorError, aiohttp.ClientOSError, asyncio.TimeoutError) as e:
+                logger.warning(
+                    f"Error connecting to node ({attempt}/{retries}): {e}"
+                )
+                last_exception = e
+
+                if attempt < retries:
+                    await asyncio.sleep(delay)
+                    delay *= 2
+
+        raise NodeException from last_exception
 
     async def _fetch_tracks(self, query: str) -> LoadedResponse:
         uri: str = f"{self.uri}/v4/loadtracks?identifier={query}"
