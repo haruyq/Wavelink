@@ -738,7 +738,7 @@ class Player(discord.VoiceProtocol):
         session_id: str | None = data.get("session_id", None)
         token: str | None = data.get("token", None)
         endpoint: str | None = data.get("endpoint", None)
-        channelId: str | None = data.get("channelId", None)
+        channel_id: str | None = data.get("channelId", None)
 
         if not session_id or not token or not endpoint:
             return
@@ -748,7 +748,7 @@ class Player(discord.VoiceProtocol):
                 "sessionId": session_id,
                 "token": token,
                 "endpoint": endpoint,
-                "channelId": channelId
+                "channelId": channel_id
             }
         }
 
