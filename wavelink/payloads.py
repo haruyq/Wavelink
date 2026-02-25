@@ -373,6 +373,7 @@ class VoiceStatePayload:
         self.token: str | None = data.get("token")
         self.endpoint: str | None = data.get("endpoint")
         self.session_id: str | None = data.get("sessionId")
+        self.channel_id: str | None = data.get("channelId")
 
 
 class PlayerResponsePayload:
