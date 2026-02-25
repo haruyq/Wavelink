@@ -17,7 +17,7 @@ class VoiceState(TypedDict, total=False):
     token: str
     endpoint: str | None
     session_id: str
-    channelId: str | None
+    channel_id: str | None
 
 
 class PlayerVoiceState(TypedDict):
