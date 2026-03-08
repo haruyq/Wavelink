@@ -133,3 +133,4 @@ class QueueMode(enum.Enum):
     normal = 0
     loop = 1
     loop_all = 2
+    loop_playlist = 3

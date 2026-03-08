@@ -267,7 +267,7 @@ class Player(discord.VoiceProtocol):
         if self.queue.mode is QueueMode.loop:
             await self._do_partial(history=False)
 
-        elif self.queue.mode is QueueMode.loop_all or (self._autoplay is AutoPlayMode.partial or self.queue):
+        elif self.queue.mode in (QueueMode.loop_all, QueueMode.loop_playlist) or (self._autoplay is AutoPlayMode.partial or self.queue):
             await self._do_partial()
 
         elif self._autoplay is AutoPlayMode.enabled:
