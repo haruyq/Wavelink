@@ -72,6 +72,8 @@ class DiscordVoiceCloseType(enum.Enum):
         4015: Voice server crashed - The server crashed. Try resuming voice connection.
     UNKNOWN_ENCRYPTION_MODE
         4016: Unknown encryption mode - We didn't recognize your encryption.
+    DAVE_REQUIRED
+        4017: Dave required - Sent when the client is not using a supported version of Discord. See https://discord.com/developers/docs/topics/voice-connections#encryption-modes for more details.    
     BAD_REQUEST
         4020: Bad request - You sent a malformed request.
     RATE_LIMITED
@@ -93,6 +95,7 @@ class DiscordVoiceCloseType(enum.Enum):
     DISCONNECTED = 4014
     VOICE_SERVER_CRASHED = 4015
     UNKNOWN_ENCRYPTION_MODE = 4016
+    DAVE_REQUIRED = 4017 
     BAD_REQUEST = 4020
     RATE_LIMITED = 4021
     CALL_TERMINATED = 4022
