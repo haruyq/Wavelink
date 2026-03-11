@@ -132,7 +132,7 @@ class Queue:
 
     @property
     def groups(self) -> list[Playable | Playlist]:
-        """このキューの仮想フラット化される前の要素（プレイリストなどを展開しないまま）のリストを返すプロパティ。
+        """キューの内容のリストを返すプロパティ
 
         Returns
         -------
