@@ -157,7 +157,25 @@ class Queue:
     def __getitem__(self, __index: SupportsIndex | slice, /) -> Playable | list[Playable]:
         if isinstance(__index, slice):
             return list(self)[__index]
-        return list(self)[__index]
+
+        target: int = __index.__index__()
+        if target < 0:
+            target += len(self)
+
+        current_len = 0
+        for item in self._items:
+            if isinstance(item, Playlist):
+                tracks = item.tracks
+                plen = len(tracks)
+                if current_len <= target < current_len + plen:
+                    return tracks[target - current_len]
+                current_len += plen
+            else:
+                if current_len == target:
+                    return item
+                current_len += 1
+
+        raise IndexError("queue index out of range")
 
     def __setitem__(self, __index: SupportsIndex, __value: Playable, /) -> None:
         self._check_compatibility(__value, include_playlist=False)
@@ -187,7 +205,10 @@ class Queue:
 
     def __delitem__(self, __index: int | slice, /) -> None:
         if isinstance(__index, slice):
-            raise NotImplementedError("Deleting slices from Queue is currently not supported.")
+            start, stop, step = __index.indices(len(self))
+            for idx in sorted(range(start, stop, step), reverse=True):
+                self.__delitem__(idx)
+            return
 
         target: int = __index
         if target < 0:
@@ -251,9 +272,9 @@ class Queue:
         return True
 
     @classmethod
-    def _check_atomic(cls, item: Iterable[object]) -> TypeGuard[Iterable[Playable | Playlist]]:
+    def _check_atomic(cls, item: Iterable[object]) -> TypeGuard[Iterable[Playable]]:
         for track in item:
-            cls._check_compatibility(track)
+            cls._check_compatibility(track, include_playlist=False)
         return True
 
     def get(self) -> Playable:
@@ -511,9 +532,10 @@ class Queue:
 
         if isinstance(item, Iterable) and not isinstance(item, Playlist):
             if atomic:
-                self._check_atomic(item)
-                self._items.extend(item)
-                added = len(list(item))
+                items: list[Playable] = list(item)
+                self._check_atomic(items)
+                self._items.extend(items)
+                added = len(items)
             else:
 
                 def try_compatibility(track: object) -> bool:
@@ -559,10 +581,11 @@ class Queue:
         async with self._lock:
             if isinstance(item, Iterable) and not isinstance(item, Playlist):
                 if atomic:
-                    self._check_atomic(item)
-                    self._items.extend(item)
+                    items: list[Playable] = list(item)
+                    self._check_atomic(items)
+                    self._items.extend(items)
                     self._wakeup_next()
-                    return len(list(item))
+                    return len(items)
 
                 for track in item:
                     try:
@@ -703,9 +726,7 @@ class Queue:
         None
         """
 
-        flat: list[Playable | Playlist] = list(self)  # type: ignore
-        random.shuffle(flat)
-        self._items = flat
+        random.shuffle(self._items)
 
     def clear(self) -> None:
         """キュー内の全アイテムを削除するメソッド

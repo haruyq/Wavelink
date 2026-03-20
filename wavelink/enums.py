@@ -128,6 +128,9 @@ class QueueMode(enum.Enum):
         このモードでは、トラックが連続してループ再生されます
     loop_all
         このモードでは、キュー内のすべてのトラックが連続してループ再生されます
+    loop_playlist
+        このモードでは、キューの先頭にある :class:`wavelink.Playlist` が繰り返しループ再生されます。
+        ``loop_all`` とは異なり、プレイリスト単位でループし、キュー内の他のアイテムには影響しません
     """
 
     normal = 0
