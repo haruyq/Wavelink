@@ -433,6 +433,7 @@ class Playlist:
     """
 
     def __init__(self, data: PlaylistPayload) -> None:
+        self._data: PlaylistPayload = data
         info: PlaylistInfoPayload = data["info"]
         self.name: str = info["name"]
         self.selected: int = info["selectedTrack"]

@@ -63,11 +63,13 @@ class Queue:
     """
 
     def __init__(self, *, history: bool = True) -> None:
-        self._items: list[Playable] = []
+        self._items: list[Playable | Playlist] = []
 
         self._history: Queue | None = Queue(history=False) if history else None
         self._mode: QueueMode = QueueMode.normal
         self._loaded: Playable | None = None
+        
+        self._loop_playlist_cache: Playlist | None = None
 
         self._waiters: deque[asyncio.Future[None]] = deque()
         self._lock = asyncio.Lock()
@@ -128,6 +130,18 @@ class Queue:
     def __repr__(self) -> str:
         return f"Queue(items={len(self)}, history={self.history!r})"
 
+    @property
+    def groups(self) -> list[Playable | Playlist]:
+        """キューの内容のリストを返すプロパティ
+
+        Returns
+        -------
+        list[:class:`wavelink.Playable` | :class:`wavelink.Playlist`]
+
+        .. versionadded:: 3.5.0
+        """
+        return self._items.copy()
+
     def __call__(self, item: Playable) -> None:
         self.put(item)
 
@@ -141,27 +155,104 @@ class Queue:
     def __getitem__(self, __index: slice, /) -> list[Playable]: ...
 
     def __getitem__(self, __index: SupportsIndex | slice, /) -> Playable | list[Playable]:
-        return self._items[__index]
+        if isinstance(__index, slice):
+            return list(self)[__index]
+
+        target: int = __index.__index__()
+        if target < 0:
+            target += len(self)
+
+        current_len = 0
+        for item in self._items:
+            if isinstance(item, Playlist):
+                tracks = item.tracks
+                plen = len(tracks)
+                if current_len <= target < current_len + plen:
+                    return tracks[target - current_len]
+                current_len += plen
+            else:
+                if current_len == target:
+                    return item
+                current_len += 1
+
+        raise IndexError("queue index out of range")
 
     def __setitem__(self, __index: SupportsIndex, __value: Playable, /) -> None:
-        self._check_compatibility(__value)
-        self._items[__index] = __value
+        self._check_compatibility(__value, include_playlist=False)
+        
+        # Determine the real index in _items by simulating flat indexing
+        target: int = __index.__index__()
+        if target < 0:
+            target += len(self)
+        
+        if target < 0 or target >= len(self):
+            raise IndexError("queue assignment index out of range")
+            
+        current_len = 0
+        for i, item in enumerate(self._items):
+            if isinstance(item, Playlist):
+                if current_len <= target < current_len + len(item.tracks):
+                    item.tracks[target - current_len] = __value
+                    break
+                current_len += len(item.tracks)
+            else:
+                if current_len == target:
+                    self._items[i] = __value
+                    break
+                current_len += 1
+
         self._wakeup_next()
 
     def __delitem__(self, __index: int | slice, /) -> None:
-        del self._items[__index]
+        if isinstance(__index, slice):
+            start, stop, step = __index.indices(len(self))
+            for idx in sorted(range(start, stop, step), reverse=True):
+                self.__delitem__(idx)
+            return
 
-    def __contains__(self, __other: Playable) -> bool:
-        return __other in self._items
+        target: int = __index
+        if target < 0:
+            target += len(self)
+            
+        if target < 0 or target >= len(self):
+            raise IndexError("queue assignment index out of range")
+            
+        current_len = 0
+        for i, item in enumerate(self._items):
+            if isinstance(item, Playlist):
+                if current_len <= target < current_len + len(item.tracks):
+                    del item.tracks[target - current_len]
+                    if not item.tracks:
+                        del self._items[i]
+                    break
+                current_len += len(item.tracks)
+            else:
+                if current_len == target:
+                    del self._items[i]
+                    break
+                current_len += 1
+
+    def __contains__(self, __other: Playable | Playlist) -> bool:
+        if isinstance(__other, Playlist):
+            return __other in self._items
+        return __other in iter(self)
 
     def __len__(self) -> int:
-        return len(self._items)
+        return sum(len(item.tracks) if isinstance(item, Playlist) else 1 for item in self._items)
 
     def __reversed__(self) -> Iterator[Playable]:
-        return reversed(self._items)
+        for item in reversed(self._items):
+            if isinstance(item, Playlist):
+                yield from reversed(item.tracks)
+            else:
+                yield item
 
     def __iter__(self) -> Iterator[Playable]:
-        return iter(self._items)
+        for item in self._items:
+            if isinstance(item, Playlist):
+                yield from item.tracks
+            else:
+                yield item
 
     def _wakeup_next(self) -> None:
         while self._waiters:
@@ -235,15 +326,18 @@ class Queue:
             return f"{minutes:02d}:{seconds:02d}"
 
     @staticmethod
-    def _check_compatibility(item: object) -> TypeGuard[Playable]:
+    def _check_compatibility(item: object, *, include_playlist: bool = True) -> TypeGuard[Playable | Playlist]:
+        if include_playlist and isinstance(item, Playlist):
+            return True
         if not isinstance(item, Playable):
-            raise TypeError("This queue is restricted to Playable objects.")
+            allow_msg = "Playable or Playlist objects" if include_playlist else "Playable objects"
+            raise TypeError(f"This queue is restricted to {allow_msg}.")
         return True
 
     @classmethod
     def _check_atomic(cls, item: Iterable[object]) -> TypeGuard[Iterable[Playable]]:
         for track in item:
-            cls._check_compatibility(track)
+            cls._check_compatibility(track, include_playlist=False)
         return True
 
     def get(self) -> Playable:
@@ -278,10 +372,63 @@ class Queue:
             self._items.extend(self.history._items)
             self.history.clear()
 
+        if self.mode is not QueueMode.loop_playlist:
+            self._loop_playlist_cache = None
+
         if not self:
             raise QueueEmpty("There are no items currently in this queue.")
 
-        track: Playable = self._items.pop(0)
+        first_item = self._items[0]
+        track: Playable
+        if isinstance(first_item, Playlist):
+            if self.mode is QueueMode.loop_playlist and self._loop_playlist_cache is None:
+                self._loop_playlist_cache = Playlist(data=first_item._data)
+                
+                if hasattr(first_item, "_extras"):
+                    self._loop_playlist_cache.extras = first_item._extras
+                    
+                standard_attrs = set(dir(Playable))
+                
+                for orig_t, cache_t in zip(first_item.tracks, self._loop_playlist_cache.tracks):
+                    cache_t.extras = orig_t.extras
+                    
+                    custom_attrs = {
+                        k: getattr(orig_t, k) 
+                        for k in dir(orig_t) 
+                        if k not in standard_attrs and not k.startswith('_')
+                    }
+                    for k, v in custom_attrs.items():
+                        setattr(cache_t, k, v)
+                
+            track = first_item.tracks.pop(0)
+            if not first_item.tracks:
+                self._items.pop(0)
+                
+                if self.mode is QueueMode.loop_playlist and self._loop_playlist_cache:
+                    cached_pl = self._loop_playlist_cache
+                    restored_pl = Playlist(data=cached_pl._data)
+                    
+                    if hasattr(cached_pl, "_extras"):
+                        restored_pl.extras = cached_pl._extras
+                        
+                    standard_attrs = set(dir(Playable))
+                    
+                    for cache_t, restored_t in zip(cached_pl.tracks, restored_pl.tracks):
+                        restored_t.extras = cache_t.extras
+                        
+                        custom_attrs = {
+                            k: getattr(cache_t, k) 
+                            for k in dir(cache_t) 
+                            if k not in standard_attrs and not k.startswith('_')
+                        }
+                        for k, v in custom_attrs.items():
+                            setattr(restored_t, k, v)
+
+                    self._items.insert(0, restored_pl)
+        else:
+            # We know it's not a Playlist here, but pyright can't infer it perfectly from _items.pop(0)
+            track = self._items.pop(0) # type: ignore
+
         self._loaded = track
 
         return track
@@ -320,7 +467,32 @@ class Queue:
         if not self:
             raise QueueEmpty("There are no items currently in this queue.")
 
-        track: Playable = self._items.pop(index)
+        target: int = index
+        if target < 0:
+            target += len(self)
+            
+        if target < 0 or target >= len(self):
+            raise IndexError("queue getting index out of range")
+            
+        current_len = 0
+        track: Playable | None = None
+        for i, item in enumerate(self._items):
+            if isinstance(item, Playlist):
+                if current_len <= target < current_len + len(item.tracks):
+                    track = item.tracks.pop(target - current_len)
+                    if not item.tracks:
+                        self._items.pop(i)
+                    break
+                current_len += len(item.tracks)
+            else:
+                if current_len == target:
+                    # Type ignore needed here as _items.pop returns Playable | Playlist, but we know it's a Playable
+                    track = self._items.pop(i) # type: ignore
+                    break
+                current_len += 1
+
+        assert track is not None
+
         self._loaded = track
 
         return track
@@ -345,8 +517,28 @@ class Queue:
 
         .. versionadded:: 3.2.0
         """
-        self._check_compatibility(value)
-        self._items.insert(index, value)
+        self._check_compatibility(value, include_playlist=False)
+        target: int = index
+        if target < 0:
+            target += len(self)
+        
+        target = max(0, min(target, len(self)))
+        if target == len(self):
+            self._items.append(value)
+        else:
+            current_len = 0
+            for i, item in enumerate(self._items):
+                if isinstance(item, Playlist):
+                    if current_len <= target < current_len + len(item.tracks):
+                        item.tracks.insert(target - current_len, value)
+                        break
+                    current_len += len(item.tracks)
+                else:
+                    if current_len == target:
+                        self._items.insert(i, value)
+                        break
+                    current_len += 1
+        
         self._wakeup_next()
 
     async def get_wait(self) -> Playable:
@@ -401,11 +593,12 @@ class Queue:
 
         added = 0
 
-        if isinstance(item, Iterable):
+        if isinstance(item, Iterable) and not isinstance(item, Playlist):
             if atomic:
-                self._check_atomic(item)
-                self._items.extend(item)
-                added = len(item)
+                items: list[Playable] = list(item)
+                self._check_atomic(items)
+                self._items.extend(items)
+                added = len(items)
             else:
 
                 def try_compatibility(track: object) -> bool:
@@ -420,7 +613,7 @@ class Queue:
         else:
             self._check_compatibility(item)
             self._items.append(item)
-            added = 1
+            added = len(item.tracks) if isinstance(item, Playlist) else 1
 
         self._wakeup_next()
         return added
@@ -449,12 +642,13 @@ class Queue:
         added: int = 0
 
         async with self._lock:
-            if isinstance(item, Iterable):
+            if isinstance(item, Iterable) and not isinstance(item, Playlist):
                 if atomic:
-                    self._check_atomic(item)
-                    self._items.extend(item)
+                    items: list[Playable] = list(item)
+                    self._check_atomic(items)
+                    self._items.extend(items)
                     self._wakeup_next()
-                    return len(item)
+                    return len(items)
 
                 for track in item:
                     try:
@@ -470,7 +664,7 @@ class Queue:
             else:
                 self._check_compatibility(item)
                 self._items.append(item)
-                added += 1
+                added += len(item.tracks) if isinstance(item, Playlist) else 1
                 await asyncio.sleep(0)
 
         self._wakeup_next()
@@ -494,7 +688,7 @@ class Queue:
             このメソッドはコルーチンではなくなった
         """
 
-        del self._items[index]
+        del self[index]
 
     def peek(self, index: int = 0, /) -> Playable:
         """指定インデックスのアイテムを参照するメソッド（キューの状態は変化しない）
@@ -576,7 +770,10 @@ class Queue:
 
         .. versionadded:: 3.2.0
         """
-        return self._items.index(item)
+        try:
+            return list(self).index(item)
+        except ValueError:
+            raise ValueError(f"{item!r} is not in queue")
 
     def shuffle(self) -> None:
         """キューをインプレースでシャッフルするメソッド（戻り値なし）
@@ -612,6 +809,7 @@ class Queue:
         """
 
         self._items.clear()
+        self._loop_playlist_cache = None
 
     def copy(self) -> Queue:
         """キューのシャローコピーを作成するメソッド
@@ -647,6 +845,7 @@ class Queue:
 
         self._mode: QueueMode = QueueMode.normal
         self._loaded = None
+        self._loop_playlist_cache = None
 
     def remove(self, item: Playable, /, count: int | None = 1) -> int:
         """指定したトラックを最大count回または全てキューから削除するメソッド
@@ -679,11 +878,11 @@ class Queue:
         """
         deleted_count: int = 0
 
-        for track in self._items.copy():
-            if track == item:
-                self._items.remove(track)
+        for i in range(len(self) - 1, -1, -1):
+            if self[i] == item:
+                del self[i]
                 deleted_count += 1
-
+                
                 if count is not None and deleted_count >= count:
                     break
 
