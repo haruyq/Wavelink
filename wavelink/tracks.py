@@ -461,6 +461,39 @@ class Playlist:
     def __len__(self) -> int:
         return len(self.tracks)
 
+    @property
+    def length(self) -> int:
+        """このプレイリストの合計時間（ミリ秒）を返すプロパティ"""
+        return sum(track.length for track in self.tracks)
+
+    @property
+    def length_sec(self) -> float:
+        """このプレイリストの合計時間（秒）を返すプロパティ"""
+        return sum(track.length_sec for track in self.tracks)
+
+    @property
+    def length_min(self) -> float:
+        """このプレイリストの合計時間（分）を返すプロパティ"""
+        return sum(track.length_min for track in self.tracks)
+
+    @property
+    def length_hour(self) -> float:
+        """このプレイリストの合計時間（時間）を返すプロパティ"""
+        return sum(track.length_hour for track in self.tracks)
+
+    @property
+    def length_formatted(self) -> str:
+        """このプレイリストの合計時間（HH:MM:SS形式）を返すプロパティ"""
+        total_seconds = int(self.length / 1000)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes:02d}:{seconds:02d}"
+
     @overload
     def __getitem__(self, index: int) -> Playable: ...
 

@@ -170,6 +170,69 @@ class Queue:
             if not waiter.done():
                 waiter.set_result(None)
                 break
+    
+    @property
+    def length(self) -> int:
+        """キューの合計時間（ミリ秒）を返すプロパティ
+
+        Returns
+        -------
+        int
+            キューの合計時間
+        """
+        return sum(track.length for track in self)
+    
+    @property
+    def length_sec(self) -> float:
+        """キューの合計時間（秒）を返すプロパティ
+
+        Returns
+        -------
+        float
+            キューの合計時間
+        """
+        return sum(track.length_sec for track in self)
+    
+    @property
+    def length_min(self) -> float:
+        """キューの合計時間（分）を返すプロパティ
+
+        Returns
+        -------
+        float
+            キューの合計時間
+        """
+        return sum(track.length_min for track in self)
+    
+    @property
+    def length_hour(self) -> float:
+        """キューの合計時間（時間）を返すプロパティ
+
+        Returns
+        -------
+        float
+            キューの合計時間
+        """
+        return sum(track.length_hour for track in self)
+    
+    @property
+    def length_formatted(self) -> str:
+        """キューの合計時間（HH:MM:SS形式）を返すプロパティ
+
+        Returns
+        -------
+        str
+            キューの合計時間
+        """
+        total_seconds = int(self.length / 1000)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes:02d}:{seconds:02d}"
 
     @staticmethod
     def _check_compatibility(item: object) -> TypeGuard[Playable]:
