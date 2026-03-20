@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wavelink"
-version = "3.5.2"
+version = "3.6.0"
 
 authors = [
-  { name="PythonistaGuild, EvieePy, haruyq", email="haruwaiku@gmail.com" },
+  { name="PythonistaGuild, EvieePy, haruyq", email="contact@haruyq.org" },
 ]
 dynamic = ["dependencies"]
 description = "discord.py用のLavalink API Wrapper"

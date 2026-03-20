@@ -367,12 +367,15 @@ class VoiceStatePayload:
         接続中のDiscordボイスエンドポイント。Noneの場合もある
     session_id: str | None
         DiscordのボイスセッションID。Noneの場合もある
+    channel_id: str | None
+        DiscordのチャンネルID。Noneの場合もある (DAVE用に追加)
     """
 
     def __init__(self, data: VoiceStateResponse) -> None:
         self.token: str | None = data.get("token")
         self.endpoint: str | None = data.get("endpoint")
         self.session_id: str | None = data.get("sessionId")
+        self.channel_id: str | None = data.get("channelId")
 
 
 class PlayerResponsePayload:

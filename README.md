@@ -9,37 +9,31 @@
 ![ロゴ](https://raw.githubusercontent.com/PythonistaGuild/Wavelink/master/logo.png)
 
 [![Github License](https://img.shields.io/github/license/PythonistaGuild/Wavelink)](LICENSE)
-[![Lavalink Version](https://img.shields.io/badge/Lavalink-v4.0%2B-blue?color=%23FB7713)](https://lavalink.dev)
+[![Lavalink Version](https://img.shields.io/badge/Lavalink-v4.2%2B-blue?color=%23FB7713)](https://lavalink.dev)
 ![Lavalink Plugin](https://img.shields.io/badge/Lavalink_Plugins-Native_Support-blue?color=%2373D673)
 
 
 </div>
 
 
-Wavelinkは[Discord.py](https://github.com/Rapptz/discord.py)に対応したLavalink向けモジュールです。  
-Wavelinkは直感的で使いやすい完全非同期APIを備えています。
-
-**Lavalink:** [GitHub](https://github.com/lavalink-devs/Lavalink/releases), [Webページ](https://lavalink.dev)
+Wavelinkは、[Discord.py](https://github.com/Rapptz/discord.py)に対応した[Lavalink](https://lavalink.dev)のAPIラッパーです。  
 
 
 ### 特徴
 
-- 完全に非同期で動作
-- Lavalink v4+サポート
+- 非同期で動作
+- Lavalink v4.2.0+サポート
 - discord.py v2.0.0+サポート
-- 連続再生のための高度な自動再生
-- 完全な型アノテーションとPyright strict typing準拠
+- 24/7連続再生のための高度な自動再生
+- Pyright(strict) typingに準拠する型付け
 
-## Lavalink
+### Lavalink
 
-Wavelink**3**は**Lavalink v4**が必要です。
-参照: [Lavalink](https://github.com/lavalink-devs/Lavalink/releases)
-
-Spotifyを再生するには、Lavalinkサーバーに[LavaSrc](https://github.com/topi314/LavaSrc)をインストールし、`wavelink.Playable`で使用できます。
-
+Wavelinkは**Lavalink v4.2.0以上**が必要です。  
+Spotifyを再生するには、Lavalinkに[LavaSrc](https://github.com/topi314/LavaSrc)をインストールし、`wavelink.Playable`で使用できます。
 
 ### 注意事項
 
-- Wavelink3はLavalink v4に対応しています。それ以外の動作は保証しません。
+- WavelinkはLavalink v4.2.0+に対応しています。それ以外の動作は保証しません。
 - WavelinkはLavaSrcやSponsorBlockなどのLavalinkプラグインをサポートしています。
-- WavelinkはPyright Strictに準拠した完全な型付けがされていますが、discord.pyとwavelink間で違いがあります。
+- Wavelinkは完全な型付けがされていますが、discord.pyとwavelink間で細かな違いが存在します。
