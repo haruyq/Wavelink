@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, TypeAlias, overload
 
 import yarl
+import random
 
 import wavelink
 
@@ -515,6 +516,11 @@ class Playlist:
 
     def pop(self, index: int = -1) -> Playable:
         return self.tracks.pop(index)
+    
+    def shuffle(self) -> None:
+        """このプレイリスト内の :class:`Playable` の順序をランダムにする"""
+        random.shuffle(self.tracks)
+        self._data["tracks"] = [track.raw_data for track in self.tracks]
 
     def track_extras(self, **attrs: object) -> None:
         """このプレイリスト内の全 :class:`Playable` に指定キーワード属性を一括付与するメソッド
