@@ -1,7 +1,8 @@
 > [!IMPORTANT]
-> このForkは、現在メンテナンスされていない[Wavelink](https://github.com/PythonistaGuild/Wavelink)を私なりに修正、機能の追加を行うためのものです。  
-> PullRequestやIssueはお気軽にどうぞ。  
-> 継続的なアップデートを保証するものではありませんので、その点はご注意ください。  
+> ~~このForkは、現在メンテナンスされていないWavelinkを私なりに修正、機能の追加を行うためのものです。~~
+>   
+> 2026/4/11に、[Wavelink](https://github.com/PythonistaGuild/Wavelink)のメンテナンスが再開されました！  
+> そのため、こちらのリポジトリはLavalink V5がリリースされるタイミングでアーカイブされます。  
 
 <div align="center">
 
