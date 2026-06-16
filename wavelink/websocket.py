@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import aiohttp
 
@@ -88,7 +88,7 @@ class Websocket:
 
         while True:
             try:
-                self.socket = await session.ws_connect(url=uri, heartbeat=heartbeat, headers=self.headers)
+                self.socket = cast(Any, await session.ws_connect(url=uri, heartbeat=heartbeat, headers=self.headers))
             except Exception as e:
                 if isinstance(e, aiohttp.WSServerHandshakeError) and e.status == 401:
                     await self.cleanup()
