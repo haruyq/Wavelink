@@ -441,6 +441,7 @@ class Playlist:
 
         playlist_info: PlaylistInfo = PlaylistInfo(data)
         self.tracks: list[Playable] = [Playable(data=track, playlist=playlist_info) for track in data["tracks"]]
+        self._loop_all_history_added: bool = False
 
         plugin: dict[Any, Any] = data["pluginInfo"]
         self.type: str | None = plugin.get("type")

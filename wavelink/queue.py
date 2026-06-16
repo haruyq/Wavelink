@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import random
 from collections import deque
 from collections.abc import Iterable, Iterator
@@ -68,6 +69,8 @@ class Queue:
         self._history: Queue | None = Queue(history=False) if history else None
         self._mode: QueueMode = QueueMode.normal
         self._loaded: Playable | None = None
+        self._loaded_history_item: Playable | Playlist | None = None
+        self._skip_loaded_history: bool = False
         
         self._loop_playlist_cache: Playlist | None = None
 
@@ -339,6 +342,31 @@ class Queue:
         for track in item:
             cls._check_compatibility(track, include_playlist=False)
         return True
+    
+    @staticmethod
+    def _clone_playlist(playlist: Playlist) -> Playlist:
+        data = copy.deepcopy(playlist._data)
+        data["tracks"] = [copy.deepcopy(track.raw_data) for track in playlist.tracks]
+        
+        cloned = Playlist(data=data)
+        
+        if hasattr(playlist, "_extras"):
+            cloned.extras = playlist._extras
+            
+        standard_attrs = set(dir(Playable))
+        
+        for orig_t, cloned_t in zip(playlist.tracks, cloned.tracks):
+            cloned_t.extras = orig_t.extras
+            
+            custom_attrs = {
+                k: getattr(orig_t, k)
+                for k in dir(orig_t)
+                if k not in standard_attrs and not k.startswith('_')
+            }
+            for k, v in custom_attrs.items():
+                setattr(cloned_t, k, v)
+        
+        return cloned
 
     def get(self) -> Playable:
         """キューの先頭（左端）からトラックを取得するメソッド
@@ -364,6 +392,8 @@ class Queue:
         """
 
         if self.mode is QueueMode.loop and self._loaded:
+            self._loaded_history_item = self._loaded
+            self._skip_loaded_history = False
             return self._loaded
 
         if self.mode is QueueMode.loop_all and not self:
@@ -378,27 +408,21 @@ class Queue:
         if not self:
             raise QueueEmpty("There are no items currently in this queue.")
 
+        self._loaded_history_item = None
+        self._skip_loaded_history = False
+        
         first_item = self._items[0]
         track: Playable
         if isinstance(first_item, Playlist):
+            if self.mode is QueueMode.loop_all:
+                if first_item._loop_all_history_added:
+                    self._skip_loaded_history = True
+                else:
+                    self._loaded_history_item = self._clone_playlist(first_item)
+                    first_item._loop_all_history_added = True
+            
             if self.mode is QueueMode.loop_playlist and self._loop_playlist_cache is None:
-                self._loop_playlist_cache = Playlist(data=first_item._data)
-                
-                if hasattr(first_item, "_extras"):
-                    self._loop_playlist_cache.extras = first_item._extras
-                    
-                standard_attrs = set(dir(Playable))
-                
-                for orig_t, cache_t in zip(first_item.tracks, self._loop_playlist_cache.tracks):
-                    cache_t.extras = orig_t.extras
-                    
-                    custom_attrs = {
-                        k: getattr(orig_t, k) 
-                        for k in dir(orig_t) 
-                        if k not in standard_attrs and not k.startswith('_')
-                    }
-                    for k, v in custom_attrs.items():
-                        setattr(cache_t, k, v)
+                self._loop_playlist_cache = self._clone_playlist(first_item)
                 
             track = first_item.tracks.pop(0)
             if not first_item.tracks:
@@ -406,28 +430,15 @@ class Queue:
                 
                 if self.mode is QueueMode.loop_playlist and self._loop_playlist_cache:
                     cached_pl = self._loop_playlist_cache
-                    restored_pl = Playlist(data=cached_pl._data)
-                    
-                    if hasattr(cached_pl, "_extras"):
-                        restored_pl.extras = cached_pl._extras
-                        
-                    standard_attrs = set(dir(Playable))
-                    
-                    for cache_t, restored_t in zip(cached_pl.tracks, restored_pl.tracks):
-                        restored_t.extras = cache_t.extras
-                        
-                        custom_attrs = {
-                            k: getattr(cache_t, k) 
-                            for k in dir(cache_t) 
-                            if k not in standard_attrs and not k.startswith('_')
-                        }
-                        for k, v in custom_attrs.items():
-                            setattr(restored_t, k, v)
+                    restored_pl = self._clone_playlist(cached_pl)
 
                     self._items.insert(0, restored_pl)
         else:
             # We know it's not a Playlist here, but pyright can't infer it perfectly from _items.pop(0)
             track = self._items.pop(0) # type: ignore
+        
+        if self._loaded_history_item is None and not self._skip_loaded_history:
+            self._loaded_history_item = track
 
         self._loaded = track
 
@@ -810,6 +821,8 @@ class Queue:
 
         self._items.clear()
         self._loop_playlist_cache = None
+        self._loaded_history_item = None
+        self._skip_loaded_history = False
 
     def copy(self) -> Queue:
         """キューのシャローコピーを作成するメソッド

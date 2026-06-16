@@ -999,7 +999,12 @@ class Player(discord.VoiceProtocol):
 
         if add_history:
             assert self.queue.history is not None
-            self.queue.history.put(track)
+            if self.queue._skip_loaded_history:
+                self.queue._skip_loaded_history = False
+            else:
+                self.queue.history.put(self.queue._loaded_history_item or track)
+            
+            self.queue._loaded_history_item = None
 
         if populate:
             await self._do_recommendation(populate_track=track, max_population=max_populate)
