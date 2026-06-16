@@ -367,6 +367,17 @@ class Queue:
                 setattr(cloned_t, k, v)
         
         return cloned
+    
+    def _put_loaded_history(self, track: Playable) -> None:
+        if self.history is None:
+            return
+        
+        if self._skip_loaded_history:
+            self._skip_loaded_history = False
+        else:
+            self.history.put(self._loaded_history_item or track)
+            
+        self._loaded_history_item = None
 
     def get(self) -> Playable:
         """キューの先頭（左端）からトラックを取得するメソッド
