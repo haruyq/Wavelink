@@ -24,6 +24,7 @@ from .exceptions import (
 )
 from .filters import Filters
 from .node import Pool
+from .nodelink import Mix, SponsorBlockSegment, SponsorBlockState, VoiceReceiver
 from .payloads import (
     PlayerUpdateEventPayload,
     TrackEndEventPayload,
@@ -49,7 +50,7 @@ if TYPE_CHECKING:
         TrackEndEventPayload,
         TrackStartEventPayload,
     )
-    from .types.request import Request as RequestPayload
+    from .types.request import Request as RequestPayload, TrackRequest
     from .types.state import PlayerBasicState, PlayerVoiceState, VoiceState
 
     VocalGuildChannel = discord.VoiceChannel | discord.StageChannel
@@ -731,8 +732,10 @@ class Player(discord.VoiceProtocol):
 
         self._voice_state["voice"]["session_id"] = data["session_id"]
         self._voice_state["voice"]["channel_id"] = str(channel_id)
-        
+
         self.channel = self.client.get_channel(int(channel_id))  # type: ignore
+
+        await self._dispatch_voice_update()
 
     async def on_voice_server_update(self, data: VoiceServerUpdatePayload, /) -> None:
         self._voice_state["voice"]["token"] = data["token"]
@@ -884,6 +887,7 @@ class Player(discord.VoiceProtocol):
         filters: Filters | None = None,
         populate: bool = False,
         max_populate: int = 5,
+        audio_track_id: str | None = None,
     ) -> Playable:
         """Play the provided :class:`~wavelink.Playable`.
 
@@ -976,8 +980,12 @@ class Player(discord.VoiceProtocol):
         if filters:
             self._filters = filters
 
+        track_request: TrackRequest = {"encoded": track.encoded, "userData": dict(track.extras)}
+        if audio_track_id is not None:
+            track_request["audioTrackId"] = audio_track_id
+
         request: RequestPayload = {
-            "track": {"encoded": track.encoded, "userData": dict(track.extras)},
+            "track": track_request,
             "volume": vol,
             "position": start,
             "endTime": end,
@@ -1004,6 +1012,109 @@ class Player(discord.VoiceProtocol):
             await self._do_recommendation(populate_track=track, max_population=max_populate)
 
         return track
+
+    async def add_mix(self, track: Playable, /, *, volume: float | None = None) -> Mix:
+        """NodeLinkのミキサーへトラックを追加するメソッド"""
+        assert self.guild is not None
+
+        if volume is not None and not 0 <= volume <= 1:
+            raise ValueError("Mix volume must be between 0 and 1.")
+
+        data: dict[str, Any] = {"track": {"encoded": track.encoded}}
+        if volume is not None:
+            data["volume"] = volume
+
+        response = await self.node.send(
+            "POST",
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/mix",
+            data=data,
+        )
+        return Mix(response)
+
+    async def fetch_mixes(self) -> list[Mix]:
+        """NodeLinkのミキサーで再生中の全レイヤーを取得するメソッド"""
+        assert self.guild is not None
+
+        response = await self.node.send(
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/mix"
+        )
+        return [Mix(mix) for mix in response["mixes"]]
+
+    async def update_mix(self, mix_id: str, /, *, volume: float) -> None:
+        """NodeLinkのミックスレイヤーの音量を更新するメソッド"""
+        assert self.guild is not None
+
+        if not 0 <= volume <= 1:
+            raise ValueError("Mix volume must be between 0 and 1.")
+
+        await self.node.send(
+            "PATCH",
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/mix/{mix_id}",
+            data={"volume": volume},
+        )
+
+    async def remove_mix(self, mix_id: str, /) -> None:
+        """NodeLinkのミックスレイヤーを削除するメソッド"""
+        assert self.guild is not None
+        await self.node.send(
+            "DELETE", path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/mix/{mix_id}"
+        )
+
+    async def fetch_sponsorblock(self) -> SponsorBlockState:
+        """NodeLinkのSponsorBlock設定とセグメントを取得するメソッド"""
+        assert self.guild is not None
+        response = await self.node.send(
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/sponsorblock"
+        )
+        return SponsorBlockState(response)
+
+    async def update_sponsorblock(
+        self,
+        *,
+        enabled: bool | None = None,
+        categories: list[str] | None = None,
+        action_types: list[str] | None = None,
+        skip_margin_ms: int | None = None,
+    ) -> SponsorBlockState:
+        """NodeLinkのSponsorBlock設定を更新するメソッド"""
+        assert self.guild is not None
+
+        data = {
+            "enabled": enabled,
+            "categories": categories,
+            "actionTypes": action_types,
+            "skipMarginMs": skip_margin_ms,
+        }
+        response = await self.node.send(
+            "PATCH",
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/sponsorblock",
+            data={key: value for key, value in data.items() if value is not None},
+        )
+        return SponsorBlockState(response)
+
+    async def set_sponsorblock_segments(
+        self, segments: list[SponsorBlockSegment], /
+    ) -> SponsorBlockState:
+        """NodeLinkで現在のトラックに使うSponsorBlockセグメントを設定するメソッド"""
+        assert self.guild is not None
+        response = await self.node.send(
+            "POST",
+            path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/sponsorblock",
+            data={"segments": [segment.raw_data for segment in segments]},
+        )
+        return SponsorBlockState(response)
+
+    async def clear_sponsorblock(self) -> None:
+        """NodeLinkのSponsorBlock状態を消去するメソッド"""
+        assert self.guild is not None
+        await self.node.send(
+            "DELETE", path=f"/v4/sessions/{self.node.session_id}/players/{self.guild.id}/sponsorblock"
+        )
+
+    def voice_receiver(self) -> VoiceReceiver:
+        """NodeLinkのVoice Receive WebSocketを表すオブジェクトを返すメソッド"""
+        assert self.guild is not None
+        return VoiceReceiver(node=self.node, guild_id=self.guild.id)
 
     async def pause(self, value: bool, /) -> None:
         """Set the paused or resume state of the player.

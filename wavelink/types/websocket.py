@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal, TypeAlias, TypedDict
 if TYPE_CHECKING:
     from typing_extensions import NotRequired
 
+    from .nodelink import SponsorBlockSegmentPayload
     from .state import PlayerState
     from .stats import CPUStats, FrameStats, MemoryStats
     from .tracks import TrackPayload
@@ -36,7 +37,7 @@ class StatsOP(TypedDict):
     uptime: int
     memory: MemoryStats
     cpu: CPUStats
-    frameStats: FrameStats
+    frameStats: NotRequired[FrameStats | None]
 
 
 class TrackStartEvent(TypedDict):
@@ -79,6 +80,38 @@ class WebsocketClosedEvent(TypedDict):
     byRemote: bool
 
 
+class MixStartedEvent(TypedDict):
+    op: Literal["event"]
+    guildId: str
+    type: Literal["MixStartedEvent"]
+    mixId: str
+    track: TrackPayload
+    volume: float
+
+
+class MixEndedEvent(TypedDict):
+    op: Literal["event"]
+    guildId: str
+    type: Literal["MixEndedEvent"]
+    mixId: str
+    reason: str
+
+
+class SponsorBlockSegmentsLoadedEvent(TypedDict):
+    op: Literal["event"]
+    guildId: str
+    type: Literal["SponsorBlockSegmentsLoadedEvent"]
+    segments: list[SponsorBlockSegmentPayload]
+
+
+class SponsorBlockSegmentSkippedEvent(TypedDict):
+    op: Literal["event"]
+    guildId: str
+    type: Literal["SponsorBlockSegmentSkippedEvent"]
+    segment: SponsorBlockSegmentPayload
+    skippedMs: int
+
+
 WebsocketOP: TypeAlias = (
     ReadyOP
     | PlayerUpdateOP
@@ -88,4 +121,8 @@ WebsocketOP: TypeAlias = (
     | TrackExceptionEvent
     | TrackStuckEvent
     | WebsocketClosedEvent
+    | MixStartedEvent
+    | MixEndedEvent
+    | SponsorBlockSegmentsLoadedEvent
+    | SponsorBlockSegmentSkippedEvent
 )

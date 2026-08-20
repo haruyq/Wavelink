@@ -1,5 +1,7 @@
 from typing import TypedDict
 
+from typing_extensions import NotRequired
+
 
 class MemoryStats(TypedDict):
     free: int
@@ -11,7 +13,8 @@ class MemoryStats(TypedDict):
 class CPUStats(TypedDict):
     cores: int
     systemLoad: float
-    lavalinkLoad: float
+    lavalinkLoad: NotRequired[float]
+    nodelinkLoad: NotRequired[float]
 
 
 class FrameStats(TypedDict):

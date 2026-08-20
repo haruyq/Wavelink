@@ -55,6 +55,52 @@ class LowPass(TypedDict, total=False):
     smoothing: float | None
 
 
+class Echo(TypedDict, total=False):
+    delay: float | None
+    feedback: float | None
+    mix: float | None
+
+
+class Chorus(TypedDict, total=False):
+    rate: float | None
+    depth: float | None
+    feedback: float | None
+    delay: float | None
+    mix: float | None
+
+
+class Compressor(TypedDict, total=False):
+    threshold: float | None
+    ratio: float | None
+    attack: float | None
+    release: float | None
+    gain: float | None
+    makeupGain: float | None
+
+
+class HighPass(TypedDict, total=False):
+    smoothing: float | None
+
+
+class Phaser(TypedDict, total=False):
+    rate: float | None
+    depth: float | None
+    feedback: float | None
+    delay: float | None
+    mix: float | None
+    stages: int | None
+    minFrequency: float | None
+    maxFrequency: float | None
+
+
+class Spatial(TypedDict, total=False):
+    x: float | None
+    y: float | None
+    z: float | None
+    depth: float | None
+    rate: float | None
+
+
 class FilterPayload(TypedDict, total=False):
     volume: float | None
     equalizer: list[Equalizer] | None
@@ -66,4 +112,10 @@ class FilterPayload(TypedDict, total=False):
     distortion: Distortion
     channelMix: ChannelMix
     lowPass: LowPass
+    echo: Echo
+    chorus: Chorus
+    compressor: Compressor
+    highpass: HighPass
+    phaser: Phaser
+    spatial: Spatial
     pluginFilters: dict[str, Any]

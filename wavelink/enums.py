@@ -38,6 +38,24 @@ class TrackSource(enum.Enum):
     YouTube = 0
     YouTubeMusic = 1
     SoundCloud = 2
+    Audiomack = 3
+    AppleMusic = 4
+    Bandcamp = 5
+    Bilibili = 6
+    Deezer = 7
+    FloweryTTS = 8
+    Gaana = 9
+    GoogleDrive = 10
+    GoogleTTS = 11
+    JioSaavn = 12
+    LastFM = 13
+    Mixcloud = 14
+    NicoVideo = 15
+    Pandora = 16
+    Shazam = 17
+    Spotify = 18
+    Tidal = 19
+    VKMusic = 20
 
 
 class DiscordVoiceCloseType(enum.Enum):

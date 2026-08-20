@@ -20,6 +20,7 @@ class TrackRequest(TypedDict, total=False):
     encoded: str | None
     identifier: str
     userData: dict[str, Any]
+    audioTrackId: str
 
 
 class _BaseRequest(TypedDict, total=False):

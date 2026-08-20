@@ -4,12 +4,18 @@ from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
 
 from .types.filters import (
     ChannelMix as ChannelMixPayload,
+    Chorus as ChorusPayload,
+    Compressor as CompressorPayload,
     Distortion as DistortionPayload,
+    Echo as EchoPayload,
     Equalizer as EqualizerPayload,
     FilterPayload,
+    HighPass as HighPassPayload,
     Karaoke as KaraokePayload,
     LowPass as LowPassPayload,
+    Phaser as PhaserPayload,
     Rotation as RotationPayload,
+    Spatial as SpatialPayload,
     Timescale as TimescalePayload,
     Tremolo as TremoloPayload,
     Vibrato as VibratoPayload,
@@ -36,6 +42,12 @@ __all__ = (
     "Distortion",
     "ChannelMix",
     "LowPass",
+    "Echo",
+    "Chorus",
+    "Compressor",
+    "HighPass",
+    "Phaser",
+    "Spatial",
     "PluginFilters",
 )
 
@@ -51,6 +63,12 @@ class FiltersOptions(TypedDict, total=False):
     distortion: Distortion
     channel_mix: ChannelMix
     low_pass: LowPass
+    echo: Echo
+    chorus: Chorus
+    compressor: Compressor
+    high_pass: HighPass
+    phaser: Phaser
+    spatial: Spatial
     plugin_filters: PluginFilters
     reset: bool
 
@@ -86,6 +104,26 @@ class ChannelMixOptions(TypedDict):
     left_to_right: float | None
     right_to_left: float | None
     right_to_right: float | None
+
+
+class CompressorOptions(TypedDict, total=False):
+    threshold: float | None
+    ratio: float | None
+    attack: float | None
+    release: float | None
+    gain: float | None
+    makeup_gain: float | None
+
+
+class PhaserOptions(TypedDict, total=False):
+    rate: float | None
+    depth: float | None
+    feedback: float | None
+    delay: float | None
+    mix: float | None
+    stages: int | None
+    min_frequency: float | None
+    max_frequency: float | None
 
 
 class _BaseFilter(Generic[FT]):
@@ -704,6 +742,92 @@ class LowPass(_BaseFilter[LowPassPayload]):
         return f"<LowPass: {self._payload}>"
 
 
+class _NodeLinkFilter(_BaseFilter[FT]):
+    def reset(self) -> Self:
+        self._payload = {}  # type: ignore[assignment]
+        return self
+
+    @property
+    def payload(self) -> FT:
+        return self._payload.copy()  # type: ignore[union-attr, return-value]
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: {self._payload}>"
+
+
+class Echo(_NodeLinkFilter[EchoPayload]):
+    """NodeLinkのエコーフィルタークラス"""
+
+    def set(self, **options: Unpack[EchoPayload]) -> Self:
+        self._payload.update(options)
+        self._remove_none()
+        return self
+
+
+class Chorus(_NodeLinkFilter[ChorusPayload]):
+    """NodeLinkのコーラスフィルタークラス"""
+
+    def set(self, **options: Unpack[ChorusPayload]) -> Self:
+        self._payload.update(options)
+        self._remove_none()
+        return self
+
+
+class Compressor(_NodeLinkFilter[CompressorPayload]):
+    """NodeLinkのコンプレッサーフィルタークラス"""
+
+    def set(self, **options: Unpack[CompressorOptions]) -> Self:
+        self._payload = {
+            "threshold": options.get("threshold", self._payload.get("threshold")),
+            "ratio": options.get("ratio", self._payload.get("ratio")),
+            "attack": options.get("attack", self._payload.get("attack")),
+            "release": options.get("release", self._payload.get("release")),
+            "gain": options.get("gain", self._payload.get("gain")),
+            "makeupGain": options.get("makeup_gain", self._payload.get("makeupGain")),
+        }
+        self._remove_none()
+        return self
+
+
+class HighPass(_NodeLinkFilter[HighPassPayload]):
+    """NodeLinkのハイパスフィルタークラス"""
+
+    def set(self, **options: Unpack[HighPassPayload]) -> Self:
+        self._payload.update(options)
+        self._remove_none()
+        return self
+
+
+class Phaser(_NodeLinkFilter[PhaserPayload]):
+    """NodeLinkのフェイザーフィルタークラス"""
+
+    def set(self, **options: Unpack[PhaserOptions]) -> Self:
+        self._payload = {
+            "rate": options.get("rate", self._payload.get("rate")),
+            "depth": options.get("depth", self._payload.get("depth")),
+            "feedback": options.get("feedback", self._payload.get("feedback")),
+            "delay": options.get("delay", self._payload.get("delay")),
+            "mix": options.get("mix", self._payload.get("mix")),
+            "stages": options.get("stages", self._payload.get("stages")),
+            "minFrequency": options.get("min_frequency", self._payload.get("minFrequency")),
+            "maxFrequency": options.get("max_frequency", self._payload.get("maxFrequency")),
+        }
+        self._remove_none()
+        return self
+
+
+class Spatial(_NodeLinkFilter[SpatialPayload]):
+    """NodeLinkの空間オーディオフィルタークラス"""
+
+    def set(self, **options: Unpack[SpatialPayload]) -> Self:
+        self._payload.update(options)
+        self._remove_none()
+        return self
+
+
 class PluginFilters(_BaseFilter[dict[str, Any]]):
     """プラグインフィルタークラス
 
@@ -833,6 +957,12 @@ class Filters:
         self._distortion: Distortion = Distortion({})
         self._channel_mix: ChannelMix = ChannelMix({})
         self._low_pass: LowPass = LowPass({})
+        self._echo: Echo = Echo({})
+        self._chorus: Chorus = Chorus({})
+        self._compressor: Compressor = Compressor({})
+        self._high_pass: HighPass = HighPass({})
+        self._phaser: Phaser = Phaser({})
+        self._spatial: Spatial = Spatial({})
         self._plugin_filters: PluginFilters = PluginFilters({})
 
         if data:
@@ -849,6 +979,12 @@ class Filters:
         self._distortion = Distortion(data.get("distortion", {}))
         self._channel_mix = ChannelMix(data.get("channelMix", {}))
         self._low_pass = LowPass(data.get("lowPass", {}))
+        self._echo = Echo(data.get("echo", {}))
+        self._chorus = Chorus(data.get("chorus", {}))
+        self._compressor = Compressor(data.get("compressor", {}))
+        self._high_pass = HighPass(data.get("highpass", {}))
+        self._phaser = Phaser(data.get("phaser", {}))
+        self._spatial = Spatial(data.get("spatial", {}))
         self._plugin_filters = PluginFilters(data.get("pluginFilters", {}))
 
     def _set_with_reset(self, filters: FiltersOptions) -> None:
@@ -862,6 +998,12 @@ class Filters:
         self._distortion = filters.get("distortion", Distortion({}))
         self._channel_mix = filters.get("channel_mix", ChannelMix({}))
         self._low_pass = filters.get("low_pass", LowPass({}))
+        self._echo = filters.get("echo", Echo({}))
+        self._chorus = filters.get("chorus", Chorus({}))
+        self._compressor = filters.get("compressor", Compressor({}))
+        self._high_pass = filters.get("high_pass", HighPass({}))
+        self._phaser = filters.get("phaser", Phaser({}))
+        self._spatial = filters.get("spatial", Spatial({}))
         self._plugin_filters = filters.get("plugin_filters", PluginFilters({}))
 
     def set_filters(self, **filters: Unpack[FiltersOptions]) -> None:
@@ -911,6 +1053,12 @@ class Filters:
         self._distortion = filters.get("distortion", self._distortion)
         self._channel_mix = filters.get("channel_mix", self._channel_mix)
         self._low_pass = filters.get("low_pass", self._low_pass)
+        self._echo = filters.get("echo", self._echo)
+        self._chorus = filters.get("chorus", self._chorus)
+        self._compressor = filters.get("compressor", self._compressor)
+        self._high_pass = filters.get("high_pass", self._high_pass)
+        self._phaser = filters.get("phaser", self._phaser)
+        self._spatial = filters.get("spatial", self._spatial)
         self._plugin_filters = filters.get("plugin_filters", self._plugin_filters)
 
     def _reset(self) -> None:
@@ -924,6 +1072,12 @@ class Filters:
         self._distortion = Distortion({})
         self._channel_mix = ChannelMix({})
         self._low_pass = LowPass({})
+        self._echo = Echo({})
+        self._chorus = Chorus({})
+        self._compressor = Compressor({})
+        self._high_pass = HighPass({})
+        self._phaser = Phaser({})
+        self._spatial = Spatial({})
         self._plugin_filters = PluginFilters({})
 
     def reset(self) -> None:
@@ -1028,6 +1182,36 @@ class Filters:
         return self._low_pass
 
     @property
+    def echo(self) -> Echo:
+        """NodeLinkの :class:`~wavelink.Echo` フィルターを返す"""
+        return self._echo
+
+    @property
+    def chorus(self) -> Chorus:
+        """NodeLinkの :class:`~wavelink.Chorus` フィルターを返す"""
+        return self._chorus
+
+    @property
+    def compressor(self) -> Compressor:
+        """NodeLinkの :class:`~wavelink.Compressor` フィルターを返す"""
+        return self._compressor
+
+    @property
+    def high_pass(self) -> HighPass:
+        """NodeLinkの :class:`~wavelink.HighPass` フィルターを返す"""
+        return self._high_pass
+
+    @property
+    def phaser(self) -> Phaser:
+        """NodeLinkの :class:`~wavelink.Phaser` フィルターを返す"""
+        return self._phaser
+
+    @property
+    def spatial(self) -> Spatial:
+        """NodeLinkの :class:`~wavelink.Spatial` フィルターを返す"""
+        return self._spatial
+
+    @property
     def plugin_filters(self) -> PluginFilters:
         """Property which returns the :class:`~wavelink.PluginFilters` filters associated with this Filters payload."""
         return self._plugin_filters
@@ -1044,6 +1228,12 @@ class Filters:
             "distortion": self._distortion._payload,
             "channelMix": self._channel_mix._payload,
             "lowPass": self._low_pass._payload,
+            "echo": self._echo._payload,
+            "chorus": self._chorus._payload,
+            "compressor": self._compressor._payload,
+            "highpass": self._high_pass._payload,
+            "phaser": self._phaser._payload,
+            "spatial": self._spatial._payload,
             "pluginFilters": self._plugin_filters._payload,
         }
 
@@ -1058,5 +1248,7 @@ class Filters:
             f"<Filters: volume={self._volume}, equalizer={self._equalizer!r}, karaoke={self._karaoke!r},"
             f" timescale={self._timescale!r}, tremolo={self._tremolo!r}, vibrato={self._vibrato!r},"
             f" rotation={self._rotation!r}, distortion={self._distortion!r}, channel_mix={self._channel_mix!r},"
-            f" low_pass={self._low_pass!r}, plugin_filters={self._plugin_filters!r}>"
+            f" low_pass={self._low_pass!r}, echo={self._echo!r}, chorus={self._chorus!r},"
+            f" compressor={self._compressor!r}, high_pass={self._high_pass!r}, phaser={self._phaser!r},"
+            f" spatial={self._spatial!r}, plugin_filters={self._plugin_filters!r}>"
         )

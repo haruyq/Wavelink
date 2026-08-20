@@ -76,7 +76,8 @@ class VersionPayload(TypedDict):
     minor: int
     patch: int
     preRelease: NotRequired[str]
-    build: NotRequired[str]
+    prerelease: NotRequired[list[str]]
+    build: NotRequired[str | list[str]]
 
 
 class GitPayload(TypedDict):
@@ -94,8 +95,11 @@ class InfoResponse(TypedDict):
     version: VersionPayload
     buildTime: int
     git: GitPayload
-    jvm: str
-    lavaplayer: str
+    jvm: NotRequired[str]
+    lavaplayer: NotRequired[str]
+    node: NotRequired[str]
+    voice: NotRequired[dict[str, str]]
+    isNodelink: NotRequired[bool]
     sourceManagers: list[str]
     filters: list[str]
     plugins: list[PluginPayload]
@@ -107,4 +111,4 @@ class StatsResponse(TypedDict):
     uptime: int
     memory: MemoryStats
     cpu: CPUStats
-    frameStats: NotRequired[FrameStats]
+    frameStats: NotRequired[FrameStats | None]

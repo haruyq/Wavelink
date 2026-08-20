@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 import urllib.parse
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeAlias
 
 import aiohttp
-import asyncio
 from discord.utils import classproperty
 
 from . import __version__
@@ -20,6 +20,7 @@ from .exceptions import (
     NodeException,
 )
 from .lfu import LFUCache
+from .nodelink import Chapter, Lyrics
 from .payloads import *
 from .tracks import Playable, Playlist
 from .websocket import Websocket
@@ -132,6 +133,7 @@ class Node:
         self._total_player_count: int | None = None
 
         self._spotify_enabled: bool = False
+        self._is_nodelink: bool = False
 
         self._websocket: Websocket | None = None
 
@@ -239,6 +241,11 @@ class Node:
         """
         return self._session_id
 
+    @property
+    def is_nodelink(self) -> bool:
+        """このノードがNodeLinkであるかを返すプロパティ"""
+        return self._is_nodelink
+
     async def _pool_closer(self) -> None:
         try:
             await self._session.close()
@@ -344,7 +351,7 @@ class Node:
 
         .. versionadded:: 3.0.0
         """
-        clean_path: str = path.removesuffix("/")
+        clean_path: str = path.strip("/")
         uri: str = f"{self.uri}/{clean_path}"
 
         if params is None:
@@ -599,6 +606,30 @@ class Node:
 
         payload: InfoResponsePayload = InfoResponsePayload(data)
         return payload
+
+    async def fetch_lyrics(self, track: Playable | str, /, *, language: str | None = None) -> Lyrics:
+        """NodeLinkからトラックの歌詞を取得するメソッド
+
+        Parameters
+        ----------
+        track: :class:`~wavelink.Playable` | str
+            対象トラック、またはエンコード済みトラック文字列
+        language: str | None
+            優先する言語
+        """
+        encoded = track.encoded if isinstance(track, Playable) else track
+        params = {"encodedTrack": encoded}
+        if language:
+            params["lang"] = language
+
+        data = await self.send(path="/v4/loadlyrics", params=params)
+        return Lyrics(data)
+
+    async def fetch_chapters(self, track: Playable | str, /) -> list[Chapter]:
+        """NodeLinkからトラックのチャプターを取得するメソッド"""
+        encoded = track.encoded if isinstance(track, Playable) else track
+        data = await self.send(path="/v4/loadchapters", params={"encodedTrack": encoded})
+        return [Chapter(chapter) for chapter in data]
 
     async def _fetch_stats(self) -> StatsResponse:
         uri: str = f"{self.uri}/v4/stats"

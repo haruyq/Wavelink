@@ -12,6 +12,7 @@ from .tracks import Playable
 
 if TYPE_CHECKING:
     from .node import Node
+    from .nodelink import SponsorBlockSegment
     from .player import Player
     from .types.filters import *
     from .types.response import *
@@ -42,6 +43,10 @@ __all__ = (
     "VoiceStatePayload",
     "PlayerResponsePayload",
     "ExtraEventPayload",
+    "MixStartedEventPayload",
+    "MixEndedEventPayload",
+    "SponsorBlockSegmentsLoadedEventPayload",
+    "SponsorBlockSegmentSkippedEventPayload",
 )
 
 
@@ -184,6 +189,42 @@ class WebsocketClosedEventPayload:
         self.by_remote = by_remote
 
 
+class MixStartedEventPayload:
+    """:func:`on_wavelink_mix_started` イベントで受け取るNodeLinkペイロード"""
+
+    def __init__(self, player: Player | None, mix_id: str, track: Playable, volume: float) -> None:
+        self.player = player
+        self.mix_id = mix_id
+        self.track = track
+        self.volume = volume
+
+
+class MixEndedEventPayload:
+    """:func:`on_wavelink_mix_ended` イベントで受け取るNodeLinkペイロード"""
+
+    def __init__(self, player: Player | None, mix_id: str, reason: str) -> None:
+        self.player = player
+        self.mix_id = mix_id
+        self.reason = reason
+
+
+class SponsorBlockSegmentsLoadedEventPayload:
+    """:func:`on_wavelink_sponsorblock_segments_loaded` イベントで受け取るNodeLinkペイロード"""
+
+    def __init__(self, player: Player | None, segments: list[SponsorBlockSegment]) -> None:
+        self.player = player
+        self.segments = segments
+
+
+class SponsorBlockSegmentSkippedEventPayload:
+    """:func:`on_wavelink_sponsorblock_segment_skipped` イベントで受け取るNodeLinkペイロード"""
+
+    def __init__(self, player: Player | None, segment: SponsorBlockSegment, skipped_ms: int) -> None:
+        self.player = player
+        self.segment = segment
+        self.skipped_ms = skipped_ms
+
+
 class PlayerUpdateEventPayload:
     """:func:`on_wavelink_player_update` イベントで受け取るペイロード
 
@@ -240,14 +281,17 @@ class StatsEventCPU:
         このノードで利用可能なCPUコア数
     system_load: float
         ノード全体のシステム負荷
-    lavalink_load: float
+    lavalink_load: float | None
         ノード上のLavalinkの負荷
+    nodelink_load: float | None
+        ノード上のNodeLinkの負荷
     """
 
     def __init__(self, data: CPUStats) -> None:
         self.cores: int = data["cores"]
         self.system_load: float = data["systemLoad"]
-        self.lavalink_load: float = data["lavalinkLoad"]
+        self.lavalink_load: float | None = data.get("lavalinkLoad")
+        self.nodelink_load: float | None = data.get("nodelinkLoad")
 
 
 class StatsEventFrames:
@@ -458,8 +502,10 @@ class VersionResponsePayload:
         self.major: int = data["major"]
         self.minor: int = data["minor"]
         self.patch: int = data["patch"]
-        self.pre_release: str | None = data.get("preRelease")
-        self.build: str | None = data.get("build")
+        prerelease = data.get("preRelease") or data.get("prerelease")
+        build = data.get("build")
+        self.pre_release: str | None = ".".join(prerelease) if isinstance(prerelease, list) else prerelease
+        self.build: str | None = ".".join(build) if isinstance(build, list) else build
 
 
 class PluginResponsePayload:
@@ -489,10 +535,14 @@ class InfoResponsePayload:
         このLavalink jarがビルドされたタイムスタンプ
     git: :class:`GitResponsePayload`
         このLavalinkノードのGit情報（:class:`GitResponsePayload` オブジェクト）
-    jvm: str
-        このLavalinkノードが動作しているJVMのバージョン
-    lavaplayer: str
-        このLavalinkノードで使用されているLavaplayerのバージョン
+    jvm: str | None
+        このLavalinkノードが動作しているJVMのバージョン。NodeLinkではNone
+    lavaplayer: str | None
+        このLavalinkノードで使用されているLavaplayerのバージョン。NodeLinkではNone
+    node: str | None
+        NodeLinkが動作しているNode.jsのバージョン。LavalinkではNone
+    is_nodelink: bool
+        NodeLinkの場合はTrue
     source_managers: list[str]
         このノードで有効なソースマネージャー
     filters: list[str]
@@ -507,8 +557,10 @@ class InfoResponsePayload:
             data["buildTime"] / 1000, tz=datetime.timezone.utc
         )
         self.git: GitResponsePayload = GitResponsePayload(data["git"])
-        self.jvm: str = data["jvm"]
-        self.lavaplayer: str = data["lavaplayer"]
+        self.jvm: str | None = data.get("jvm")
+        self.lavaplayer: str | None = data.get("lavaplayer")
+        self.node: str | None = data.get("node")
+        self.is_nodelink: bool = data.get("isNodelink", False)
         self.source_managers: list[str] = data["sourceManagers"]
         self.filters: list[str] = data["filters"]
         self.plugins: list[PluginResponsePayload] = [PluginResponsePayload(p) for p in data["plugins"]]

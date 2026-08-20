@@ -10,6 +10,7 @@ from . import __version__
 from .backoff import Backoff
 from .enums import NodeStatus
 from .exceptions import AuthorizationFailedException, NodeException
+from .nodelink import SponsorBlockSegment
 from .payloads import *
 from .tracks import Playable
 
@@ -61,6 +62,7 @@ class Websocket:
             await self.node._update_session(data=udata)
 
         info: InfoResponse = await self.node._fetch_info()
+        self.node._is_nodelink = info.get("isNodelink", False)
         if "spotify" in info["sourceManagers"]:
             self.node._spotify_enabled = True
 
@@ -237,6 +239,34 @@ class Websocket:
                         self.dispatch("websocket_closed", wcpayload)
                         if player:
                             asyncio.create_task(player._disconnected_wait(code, by_remote))
+
+                    elif data["type"] == "MixStartedEvent":
+                        mixpayload = MixStartedEventPayload(
+                            player=player,
+                            mix_id=data["mixId"],
+                            track=Playable(data["track"]),
+                            volume=data["volume"],
+                        )
+                        self.dispatch("mix_started", mixpayload)
+
+                    elif data["type"] == "MixEndedEvent":
+                        mixpayload = MixEndedEventPayload(
+                            player=player, mix_id=data["mixId"], reason=data["reason"]
+                        )
+                        self.dispatch("mix_ended", mixpayload)
+
+                    elif data["type"] == "SponsorBlockSegmentsLoadedEvent":
+                        segments = [SponsorBlockSegment(segment) for segment in data["segments"]]
+                        sponsorpayload = SponsorBlockSegmentsLoadedEventPayload(player=player, segments=segments)
+                        self.dispatch("sponsorblock_segments_loaded", sponsorpayload)
+
+                    elif data["type"] == "SponsorBlockSegmentSkippedEvent":
+                        sponsorpayload = SponsorBlockSegmentSkippedEventPayload(
+                            player=player,
+                            segment=SponsorBlockSegment(data["segment"]),
+                            skipped_ms=data["skippedMs"],
+                        )
+                        self.dispatch("sponsorblock_segment_skipped", sponsorpayload)
 
                     else:
                         other_payload: ExtraEventPayload = ExtraEventPayload(node=self.node, player=player, data=data)

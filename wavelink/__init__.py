@@ -9,6 +9,7 @@ from .exceptions import *
 from .filters import *
 from .lfu import CapacityZero as CapacityZero, LFUCache as LFUCache
 from .node import *
+from .nodelink import *
 from .payloads import *
 from .player import Player as Player
 from .queue import *
