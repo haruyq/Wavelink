@@ -869,6 +869,11 @@ class Player(discord.VoiceProtocol):
             async with async_timeout.timeout(timeout):
                 await self._connection_event.wait()
         except (asyncio.TimeoutError, asyncio.CancelledError):
+            try:
+                await self.disconnect()
+            except Exception as e:
+                logger.debug("Disregarding. Failed to clean up Player after connect timeout: %s", e)
+
             msg = f"Unable to connect to {channel} as it exceeded the timeout of {timeout} seconds."
             raise ChannelTimeoutException(msg)
         finally:
